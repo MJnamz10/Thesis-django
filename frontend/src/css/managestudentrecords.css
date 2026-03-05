@@ -1,0 +1,183 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* hides scrolling */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center vertically */
+  align-items: center; /* center horizontally */
+  background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
+}
+.logo {
+  width: 185px;
+  height: auto;
+  position: absolute;
+  bottom: auto;
+  left: 50px;
+  top: 15px;
+}
+.school {
+  font-family: "Arimo", sans-serif;
+  font-weight: 700;
+  color: #4a5565;
+  position: absolute;
+  bottom: auto;
+  left: 80px;
+  top: 80px;
+  font-size: 16px;
+}
+.icon1,
+.icon2,
+.icon3 {
+  width: 15px;
+  height: auto;
+  margin-right: 5px; /* use spacing, not position */
+  position: relative;
+  bottom: 1px;
+}
+.icon6 {
+  width: 15px;
+  height: auto;
+  margin-right: 6px; /* use spacing, not position */
+  position: relative;
+  bottom: 1px;
+}
+.container1 {
+  display: flex;
+  width: 1360px;
+  border-radius: 50px;
+  text-align: center;
+  justify-content: center;
+  background-color: #efefef;
+  padding: 8px;
+  height: 20px; /* increase height */
+  position: absolute;
+  top: 150px;
+  font-family: "Arimo", sans-serif;
+  left: 75px;
+}
+.item,
+.active-item {
+  width: 860px;
+  height: 25px; /* SAME HEIGHT */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px;
+  font-size: 14px;
+  cursor: pointer;
+  position: relative;
+  bottom: 2px;
+}
+
+.active-item {
+  background-color: white;
+  position: relative;
+  bottom: 2px;
+}
+.container2 {
+  display: flex;
+  width: 1370px;
+  height: 740px; /* will be changed to dynamic later since number of data is not fixed */
+  background-color: white;
+  border-radius: 14px;
+  position: absolute;
+  top: 200px;
+  left: 80px;
+}
+.txt2 {
+  width: 800px;
+  height: 25px;
+  font-size: 14px;
+}
+/* "Add Student Record" button */
+.buttons .select-button1 {
+  background-color: #1c398e; 
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 10px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.buttons .select-button1:hover {
+  background-color: #152b6d; 
+}
+
+/* "Export CSV" button */
+.buttons1 .export-button {
+  color: #1c398e; 
+  background-color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 10px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  width: auto;
+}
+
+.buttons1 .select-button1:hover {
+  background-color: #f0f4ff; /* Very light blue tint on hover */
+}
+.export-icon {
+  color: black;
+  display: flex;
+  margin-right: auto;
+  width: 18px;
+  height: 18px;
+}
+.table {
+  color: black;
+  width: 100%;
+  border-collapse: collapse; /* Prevents double borders */
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px 24px; /* The second value (24px) creates the gap between titles */
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+.table td {
+  padding: 12px 24px;
+}
+.table-container {
+  width: 95.5%;
+  height: 500px; /* Adjust as needed */
+  overflow-y: auto; /* Enables vertical scrolling */
+}
+.student-photo-thumbnail {
+  width: 100px;
+  height: 100px;
+  min-width: 100px;
+  min-height: 100px;
+  object-fit: cover;
+  border-radius: 20%;
+  background-color: #f3f4f6;
+  display: block;
+}
+.photo-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 20%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #9ca3af;
+  border: 1px dashed #d1d5db;
+  text-align: center;
+}
