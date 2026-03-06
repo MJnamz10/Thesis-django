@@ -17,7 +17,7 @@ DATABASES = {
 
 # ==========================================
 # FUTURE DATABASE: PostgreSQL 
-# (Uncomment this block and comment out SQLite above when ready)
+# Uncomment this mizz 
 # ==========================================
 # DATABASES = {
 #     'default': env.db(),
