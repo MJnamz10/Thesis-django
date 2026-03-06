@@ -1,41 +1,26 @@
-from pathlib import Path
-import environ
 import os
 from pathlib import Path
 
-# Initialize environ
-env = environ.Env()
-
-# 1. DEFINE BASE_DIR FIRST (Line 4 was crashing because this was missing or below it)
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Read the .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
-# 2. SET DEBUG (Change to True for development to see detailed errors)
 DEBUG = True 
-
-# 3. SET ALLOWED_HOSTS (Even if DEBUG is True, it's good practice to have these)
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+# This is the crucial part that fixes your error:
 DATABASES = {
-    'default': env.db(),
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
-# Use this if not to use .env file:
+# ==========================================
+# FUTURE DATABASE: PostgreSQL 
+# (Uncomment this block and comment out SQLite above when ready)
+# ==========================================
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'thesis_qr',
-#         'USER': 'postgres',
-#         'PASSWORD': 'mizijen',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
+#     'default': env.db(),
 # }
 
 INSTALLED_APPS = [
@@ -46,8 +31,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'api',
-    "rest_framework",
+    'rest_framework',
+    'api',        # From your original list
+    'verifid',    # Our new scanner app
 ]
 
 MIDDLEWARE = [
@@ -61,7 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = 'config.urls'  # Assuming your project folder is named 'config'
 
 TEMPLATES = [
     {
@@ -80,38 +66,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
 SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
-USE_L10N = True
-
 USE_TZ = True
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom API Key for our desktop scanner
+GATE_API_KEY = "USTP_Gate_Scanner_Key_9x8B2vL5y"

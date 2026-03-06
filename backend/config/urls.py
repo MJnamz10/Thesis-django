@@ -7,6 +7,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')), # Or whatever your app is named
+
+    path('', include('verifid.urls'))
 ] 
 
 # This is the "bridge" that lets your browser see the files
