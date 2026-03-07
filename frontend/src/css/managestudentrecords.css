@@ -98,7 +98,7 @@ body {
 }
 /* "Add Student Record" button */
 .buttons .select-button1 {
-  background-color: #1c398e; 
+  background-color: #1c398e;
   color: white;
   cursor: pointer;
   transition: background 0.2s;
@@ -109,12 +109,12 @@ body {
 }
 
 .buttons .select-button1:hover {
-  background-color: #152b6d; 
+  background-color: #152b6d;
 }
 
 /* "Export CSV" button */
 .buttons1 .export-button {
-  color: #1c398e; 
+  color: #1c398e;
   background-color: white;
   cursor: pointer;
   transition: background 0.2s;
@@ -140,7 +140,6 @@ body {
   color: black;
   width: 100%;
   border-collapse: collapse; /* Prevents double borders */
-
 }
 
 .table th {
@@ -158,6 +157,42 @@ body {
   width: 95.5%;
   height: 500px; /* Adjust as needed */
   overflow-y: auto; /* Enables vertical scrolling */
+  overflow-x: hidden;
+}
+/* 1. Define the overall width of the scrollbar */
+::-webkit-scrollbar {
+  width: 16px; /* Adjust width to fit the arrow size */
+}
+
+/* 2. Change ONLY the track color (The background) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Replace with your desired color */
+}
+
+/* 3. The Draggable Handle (Thumb) */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+  border: 3px solid #f1f1f1; /* Keeps the thumb "floating" in the track */
+}
+
+/* 4. EXPLICITLY keep the buttons (Arrows) */
+::-webkit-scrollbar-button {
+  display: block;
+  background-color: #f1f1f1; /* Color of the arrow box */
+  background-repeat: no-repeat;
+  background-size: 50%;
+  background-position: center;
+}
+
+/* Up Arrow */
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='grey'><polygon points='50,00 0,100 100,100'/></svg>");
+}
+
+/* Down Arrow */
+::-webkit-scrollbar-button:single-button:vertical:increment {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='grey'><polygon points='0,0 100,0 50,100'/></svg>");
 }
 .student-photo-thumbnail {
   width: 100px;
