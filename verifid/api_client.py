@@ -1,69 +1,71 @@
 import requests
 from config import API_BASE_URL, API_KEY
 
+
 class APIClient:
     def __init__(self):
-        self.base_url = API_BASE_URL
-        # We send the API key in the headers so the backend knows this is an authorized gate scanner
+        self.base_url = API_BASE_URL.rstrip("/")
         self.headers = {
             "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    def verify_student(self, sid: str):
-        sid = (sid or "").strip()
-        if not sid:
-            return "denied", None, "missing_id"
+    def verify_student(self, qr_data: dict):
+        scanned_id = (qr_data.get("id") or "").strip()
+        scanned_name = (qr_data.get("name") or "").strip()
+        scanned_course = (qr_data.get("course") or "").strip()
+        gate = (qr_data.get("gate") or "Main Gate").strip()
+        qr_payload = qr_data.get("qr_payload") or ""
+
+        if not scanned_id:
+            return {
+                "status": "denied",
+                "student": None,
+                "reason": "missing_id",
+                "mismatches": {},
+            }
+
+        payload = {
+            "id": scanned_id,
+            "name": scanned_name,
+            "course": scanned_course,
+            "gate": gate,
+            "qr_payload": qr_payload,
+        }
 
         try:
-            # Send a GET request to your backend: e.g., /api/students/12345/verify
-            response = requests.get(
-                f"{self.base_url}/students/{sid}/verify",
+            response = requests.post(
+                f"{self.base_url}/students/{scanned_id}/verify",
                 headers=self.headers,
-                timeout=5 # Don't let the UI freeze forever if the network drops
+                json=payload,
+                timeout=5,
             )
 
-            if response.status_code == 200:
+            if response.status_code in (200, 404, 400):
                 data = response.json()
-                # Backend should return: {"status": "granted", "student": {...}, "reason": "ok"}
-                return data.get("status", "denied"), data.get("student"), data.get("reason", "ok")
+                return {
+                    "status": data.get("status", "denied"),
+                    "student": data.get("student"),
+                    "reason": data.get("reason", "api_error"),
+                    "mismatches": data.get("mismatches", {}),
+                }
 
-            elif response.status_code == 404:
-                return "denied", None, "not_found"
-            else:
-                print(f"API Error {response.status_code}: {response.text}")
-                return "denied", None, "api_error"
+            print(f"API Error {response.status_code}: {response.text}")
+            return {
+                "status": "denied",
+                "student": None,
+                "reason": "api_error",
+                "mismatches": {},
+            }
 
         except requests.exceptions.RequestException as e:
             print("API connection error:", e)
-            return "denied", None, "network_error"
-
-    def log_scan(self, sid: str, name: str, program: str, year: str, payload: str, status: str, reason: str, gate: str = "Main Gate"):
-        payload_data = {
-            "student_id": sid,
-            "full_name": name,
-            "program": program,
-            "year_level": year,
-            "qr_payload": payload,
-            "gate": gate,
-            "status": status,
-            "reason": reason
-        }
-        
-        try:
-            # Send a POST request to your backend to save the scan log
-            response = requests.post(
-                f"{self.base_url}/scans",
-                json=payload_data,
-                headers=self.headers,
-                timeout=5
-            )
-            if response.status_code not in (200, 201):
-                print(f"Failed to log scan. API responded with {response.status_code}: {response.text}")
-        except requests.exceptions.RequestException as e:
-            print("Failed to log scan due to network error:", e)
+            return {
+                "status": "denied",
+                "student": None,
+                "reason": "network_error",
+                "mismatches": {},
+            }
 
     def close(self):
-        # Kept for compatibility with the main window's closeEvent, 
-        # but HTTP requests don't need persistent connections closed like DBs do.
         pass

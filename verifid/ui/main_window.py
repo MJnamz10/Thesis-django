@@ -1,4 +1,5 @@
 import os
+from unittest import result
 import cv2
 from datetime import datetime
 import torch
@@ -112,6 +113,11 @@ class MainWindow(QMainWindow):
         self.btn_camera.setObjectName("primaryBtn")
         self.btn_camera.clicked.connect(self.toggle_camera)
 
+        self.btn_test = QPushButton("Simulate Scan")
+        self.btn_test.setCursor(Qt.PointingHandCursor)
+        self.btn_test.setObjectName("secondaryBtn")
+        self.btn_test.clicked.connect(self.simulate_test_scan)
+
         self.foot = QLabel("In production, this would use device camera for real QR code scanning")
         self.foot.setObjectName("footnote")
 
@@ -119,6 +125,7 @@ class MainWindow(QMainWindow):
         left_lay.addWidget(left_desc)
         left_lay.addWidget(self.preview)
         left_lay.addWidget(self.btn_camera)
+        left_lay.addWidget(self.btn_test)
         left_lay.addWidget(self.foot)
 
         # Right Card (Results)
@@ -160,29 +167,12 @@ class MainWindow(QMainWindow):
     def parse_qr_payload(self, payload: str):
         if not payload: return None
         raw = payload.strip().replace("\r\n", "\n").replace("\r", "\n")
-        data = {"name": "", "id": "", "program": "", "year": ""}
-
-        if "\n" not in raw and "\t" not in raw and ":" not in raw:
-            data["id"] = raw.strip()
-            return data
-
-        if "\t" in raw and "\n" not in raw:
-            parts = [p.strip() for p in raw.split("\t") if p.strip()]
-            if len(parts) == 1:
-                data["id"] = parts[0]
-                return data
-            if len(parts) >= 2:
-                return {
-                    "name": parts[0], "id": parts[1],
-                    "program": parts[2] if len(parts) >= 3 else "",
-                    "year": parts[3] if len(parts) >= 4 else "",
-                }
+        
+        # We now only expect name, id, and course from the QR code
+        data = {"name": "", "id": "", "course": ""}
 
         lines = [ln.strip() for ln in raw.split("\n") if ln.strip()]
-        if lines and lines[0].lower().startswith("qr code data:"):
-            lines[0] = lines[0].split(":", 1)[-1].strip()
-            if not lines[0]: lines = lines[1:]
-
+        
         def pick_after_colon(s: str):
             return s.split(":", 1)[1].strip() if ":" in s else ""
 
@@ -190,16 +180,7 @@ class MainWindow(QMainWindow):
             low = ln.lower()
             if low.startswith("name"): data["name"] = pick_after_colon(ln)
             elif low.startswith("id") or "id number" in low or "student id" in low: data["id"] = pick_after_colon(ln)
-            elif low.startswith("program"): data["program"] = pick_after_colon(ln)
-            elif low.startswith("year"): data["year"] = pick_after_colon(ln)
-
-        if not any(data.values()):
-            if len(lines) == 1: data["id"] = lines[0]
-            else:
-                if len(lines) >= 1: data["name"] = lines[0]
-                if len(lines) >= 2: data["id"] = lines[1]
-                if len(lines) >= 3: data["program"] = lines[2]
-                if len(lines) >= 4: data["year"] = lines[3]
+            elif low.startswith("course") or low.startswith("program"): data["course"] = pick_after_colon(ln)
 
         if not data["id"]: return None
         return data
@@ -226,24 +207,53 @@ class MainWindow(QMainWindow):
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
 
+    def simulate_test_scan(self):
+        test_payload = """Name: Chris Batumbakal
+                        ID: 2022301122
+                        Course: BSIT"""
+
+        parsed = self.parse_qr_payload(test_payload)
+        if not parsed:
+            print("Failed to parse simulated QR payload.")
+            return
+        self.add_scan_to_table(parsed, raw_payload=test_payload)
+
     def add_scan_to_table(self, parsed: dict, raw_payload: str):
         now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
-        qr_name = parsed.get("name", "") or "Unknown"
-        sid = (parsed.get("id", "") or "").strip()
-        qr_prog = parsed.get("program", "") or "-"
-        qr_year = parsed.get("year", "") or "-"
 
-        # CHANGE HERE: Use self.api instead of self.db
-        status, db_student, reason = self.api.verify_student(sid)
+        qr_data = {
+            "id": (parsed.get("id") or "").strip(),
+            "name": (parsed.get("name") or "").strip(),
+            "course": (parsed.get("course") or "").strip(),
+            "gate": "Main Gate",
+            "qr_payload": raw_payload,
+        }
 
-        name = db_student.get("name") if db_student else qr_name
-        prog = db_student.get("program") if db_student else qr_prog
-        year = db_student.get("year") if db_student else qr_year
+        result = self.api.verify_student(qr_data)
 
-        self.insert_row_top(name, sid or "-", prog, year, now, status)
-        
-        # CHANGE HERE: Use self.api instead of self.db
-        self.api.log_scan(sid, name, prog, year, raw_payload, status, reason)
+        status = result.get("status", "denied")
+        db_student = result.get("student")
+        reason = result.get("reason", "unknown")
+
+        if db_student:
+            display_name = db_student.get("name") or db_student.get("full_name") or "Unknown"
+            display_prog = db_student.get("program") or "Unknown"
+            display_year = db_student.get("year") or db_student.get("year_level") or "-"
+            display_sid = db_student.get("id") or db_student.get("id_number") or qr_data["id"] or "-"
+        else:
+            display_name = "Not in Masterlist"
+            display_prog = reason.replace("_", " ").title()
+            display_year = "N/A"
+            display_sid = qr_data["id"] or "-"
+
+        self.insert_row_top(
+            display_name,
+            display_sid,
+            display_prog,
+            display_year,
+            now,
+            status,
+        )
 
     def toggle_camera(self):
         if self.cap is None:

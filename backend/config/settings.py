@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import environ
 
 # Initialize environ
 env = environ.Env()
@@ -7,24 +8,15 @@ env = environ.Env()
 # 1. DEFINE BASE_DIR FIRST (Line 4 was crashing because this was missing or below it)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+environ.Env.read_env(BASE_DIR / '.env')
+
 DEBUG = True 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-# This is the crucial part that fixes your error:
+# ==========================================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# ==========================================
-# FUTURE DATABASE: PostgreSQL 
-# Uncomment this mizz 
-# ==========================================
-# DATABASES = {
-#     'default': env.db(),
-# }
+     'default': env.db(),
+ }
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -86,5 +78,4 @@ CORS_ALLOWED_ORIGINS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom API Key for our desktop scanner
 GATE_API_KEY = "USTP_Gate_Scanner_Key_9x8B2vL5y"
