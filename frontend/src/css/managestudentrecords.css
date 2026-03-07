@@ -135,11 +135,12 @@ body {
   width: 18px;
   height: 18px;
 }
+
 .table {
   color: black;
   width: 100%;
   border-collapse: collapse; /* Prevents double borders */
-  border-bottom: 2px solid #e5e7eb;
+
 }
 
 .table th {

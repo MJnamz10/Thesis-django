@@ -14,6 +14,11 @@ export default function ManageStudentRecords() {
   const [openModal, setOpenModal] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState(null);
+  
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { students, loading, refresh } = useStudents();
 
   const handleEditClick = (student) => {
     setSelectedStudent(student); // Set the student data
@@ -25,8 +30,15 @@ export default function ManageStudentRecords() {
     setSelectedStudent(null); // Reset when closing
   };
 
-  // useState hook
-  const { students, loading, refresh } = useStudents();
+  // 2. Logic to filter students based on ID or Name
+  const filteredStudents = students.filter((student) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      student.full_name.toLowerCase().includes(query) ||
+      student.id_number.toLowerCase().includes(query) ||
+      student.program.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div>
@@ -75,7 +87,9 @@ export default function ManageStudentRecords() {
           className="search-bar"
           type="text"
           placeholder="Search by name or student ID..."
-        ></input>
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
         <img
           src="/images/search-icon.png"
           className="search-icon"
@@ -108,45 +122,55 @@ export default function ManageStudentRecords() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: "center" }}>Loading...</td>
+                  <td colSpan="8" style={{ textAlign: "center" }}>
+                    Loading...
+                  </td>
                 </tr>
-              ) : (
-                students
-                  .slice()
-                  .sort((a, b) => a.id_number.localeCompare(b.id_number))
-                  .map((student) => (
-                    <tr key={student.id_number}>
-                      <td>
-                        {student.photo ? (
-                          <img
-                            src={student.photo}
-                            alt={student.full_name}
-                            className="student-photo-thumbnail"
-                            onError={(e) => {
-                              e.target.src = "/images/default-avatar.png";
-                            }}
-                          />
-                        ) : (
-                          <div className="photo-placeholder">No Image</div>
-                        )}
-                      </td>
-                      <td>{student.id_number}</td>
-                      <td>{student.full_name}</td>
-                      <td>{student.program}</td>
-                      <td>{student.year_level}</td>
-                      <td>{student.validity_status}</td>
-                      <td>
-                        <img src="/images/qr-sample.png" width="24" alt="qr" />
-                      </td>
-                      <td>
-                        <UserPen
-                          size={18}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleEditClick(student)}
+              ) : filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={student.id_number}>
+                    <td>
+                      {student.photo ? (
+                        <img
+                          src={student.photo}
+                          alt={student.full_name}
+                          className="student-photo-thumbnail"
+                          onError={(e) => {
+                            e.target.src = "/images/default-avatar.png";
+                          }}
                         />
-                      </td>
-                    </tr>
-                  ))
+                      ) : (
+                        <div className="photo-placeholder">No Image</div>
+                      )}
+                    </td>
+                    <td>{student.id_number}</td>
+                    <td>{student.full_name}</td>
+                    <td>{student.program}</td>
+                    <td>{student.year_level}</td>
+                    <td>{student.validity_status}</td>
+                    <td>
+                      <img src="/images/qr-sample.png" width="24" alt="qr" />
+                    </td>
+                    <td>
+                      <UserPen
+                        size={18}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleEditClick(student)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="8"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    {searchQuery
+                      ? `No results found for "${searchQuery}"`
+                      : "No student records available."}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

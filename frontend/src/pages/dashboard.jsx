@@ -19,17 +19,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  // Simulate loading delay
-  setTimeout(() => {
-    setStats({
-      totalStudents: 1240,
-      grantedToday: 312,
-      deniedToday: 18,
-      trafficToday: 330,
-    });
-    setLoading(false);
-  }, 800);
-}, []);
+    // Simulate loading delay
+    setTimeout(() => {
+      setStats({
+        totalStudents: 1240,
+        grantedToday: 312,
+        deniedToday: 18,
+        trafficToday: 330,
+      });
+      setLoading(false);
+    }, 800);
+  }, []);
 
   return (
     <div className="page">
@@ -112,20 +112,20 @@ export default function Dashboard() {
         <section className="dash-containers2">
           <div className="dash-header">
             <div className="txt1">
-              <img src="/images/grant.png" alt="" className="icon4" />
               <p>Access Status Overview</p>
             </div>
             <div className="txt2">
-              <img src="/images/denied.png" alt="" className="icon5" />
               <p>Today's verification results at Main Gate</p>
             </div>
           </div>
 
           <div className="dash-containers3">
             <div className="dash-item2 granted">
+              <img src="/images/grant.png" alt="" className="icon4" />
               <p className="title2">Granted</p>
             </div>
             <div className="dash-item2 denied">
+              <img src="/images/denied.png" alt="" className="icon5" />
               <p className="title2">Denied</p>
             </div>
           </div>

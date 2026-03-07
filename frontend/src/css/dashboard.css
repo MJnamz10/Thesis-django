@@ -41,11 +41,11 @@ body {
 
 /* Nav pills */
 .page .container1 {
-  width: fit-content;          /* 👈 only as wide as needed */
-  max-width: 90%;              /* prevent overflow */
-  margin: 0 auto;  
-  height: 38px;            /* 👈 centers it */
-  
+  width: fit-content; /* 👈 only as wide as needed */
+  max-width: 90%; /* prevent overflow */
+  margin: 0 auto;
+  height: 38px; /* 👈 centers it */
+
   background-color: #efefef;
   border-radius: 999px;
   padding: 8px;
@@ -61,10 +61,10 @@ body {
 
 .item,
 .active-item {
-  flex: 0 1 auto;       /* shrink if needed, don't force stretch */
+  flex: 0 1 auto; /* shrink if needed, don't force stretch */
   min-width: 0;
 
-  padding: 0 18px;      /* horizontal spacing */
+  padding: 0 18px; /* horizontal spacing */
   height: 42px;
 
   display: flex;
@@ -103,7 +103,8 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(332px, 1fr));
   gap: 16px;
-  margin-top: clamp(40px, 20vh, 500px);
+  margin-top: clamp(40px, 19vh, 500px);
+  height: 45%;
 }
 
 .dash-item {
@@ -132,9 +133,11 @@ body {
 /* Middle big container */
 .container6 {
   width: 100%;
-  height: clamp(220px, 35vh, 420px);
+  height: clamp(220px, 40vh, 420px);
   background-color: white;
   border-radius: 14px;
+  position: relative;
+  top: 8px;
 }
 
 /* Bottom overview container */
@@ -144,6 +147,9 @@ body {
   border-radius: 14px;
   padding: 16px;
   box-sizing: border-box;
+  height: 87%;
+  position: relative;
+  top: 2px;
 
   display: grid;
   gap: 14px;
@@ -151,7 +157,7 @@ body {
 
 .dash-header {
   display: grid;
-  gap: 6px;
+  gap: 0px;
 }
 
 .txt1,
@@ -187,15 +193,18 @@ body {
 /* Granted / Denied cards */
 .dash-containers3 {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 5px;
+  padding-bottom: 20px;
+  position: relative;
+  top: -5px;
 }
 
 .dash-item2 {
   border-radius: 14px;
   padding: 14px;
   box-sizing: border-box;
-  min-height: 70px;
+  min-height: 55px;
   display: flex;
   align-items: center;
 }
@@ -209,9 +218,12 @@ body {
 }
 
 .title2 {
-  margin: 0;
+ position: relative;
+ top: -10px;
+ margin: 0px;
   font-size: 14px;
   color: #4a5565;
+  margin-left: 20px;
 }
 
 /* Breakpoints */
