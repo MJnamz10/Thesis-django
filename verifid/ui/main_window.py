@@ -6,7 +6,7 @@ import torch
 from ultralytics import YOLO
 
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QLabel, QPushButton,
+    QMainWindow, QWidget, QLabel, QPushButton, QLineEdit,
     QHBoxLayout, QVBoxLayout, QFrame, QTableWidget, QTableWidgetItem,
     QSizePolicy
 )
@@ -113,10 +113,15 @@ class MainWindow(QMainWindow):
         self.btn_camera.setObjectName("primaryBtn")
         self.btn_camera.clicked.connect(self.toggle_camera)
 
-        self.btn_test = QPushButton("Simulate Scan")
+        self.id_input = QLineEdit()
+        self.id_input.setPlaceholderText("Enter ID number")
+        self.id_input.setObjectName("idInput")
+        self.id_input.returnPressed.connect(self.search_typed_id)
+
+        self.btn_test = QPushButton("Search ID")
         self.btn_test.setCursor(Qt.PointingHandCursor)
         self.btn_test.setObjectName("secondaryBtn")
-        self.btn_test.clicked.connect(self.simulate_test_scan)
+        self.btn_test.clicked.connect(self.search_typed_id)
 
         self.foot = QLabel("In production, this would use device camera for real QR code scanning")
         self.foot.setObjectName("footnote")
@@ -125,6 +130,7 @@ class MainWindow(QMainWindow):
         left_lay.addWidget(left_desc)
         left_lay.addWidget(self.preview)
         left_lay.addWidget(self.btn_camera)
+        left_lay.addWidget(self.id_input)
         left_lay.addWidget(self.btn_test)
         left_lay.addWidget(self.foot)
 
@@ -141,19 +147,20 @@ class MainWindow(QMainWindow):
         table_wrap_lay.setContentsMargins(0, 0, 0, 0)
         table_wrap_lay.setSpacing(0)
 
-        self.table = QTableWidget(0, 4)
+        self.table = QTableWidget(0, 5)
         self.table.setObjectName("table")
-        self.table.setHorizontalHeaderLabels(["Student", "Program & Year", "Time", "Status"])
+        self.table.setHorizontalHeaderLabels(["Timestamp", "ID Number", "Name", "Program", "Year Level"])
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setSelectionMode(QTableWidget.NoSelection)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
 
-        self.table.setColumnWidth(0, 240)
-        self.table.setColumnWidth(1, 180)
-        self.table.setColumnWidth(2, 100)
-        self.table.setColumnWidth(3, 180)
+        self.table.setColumnWidth(0, 120)  # Timestamp
+        self.table.setColumnWidth(1, 120)  # ID
+        self.table.setColumnWidth(2, 220)  # Name
+        self.table.setColumnWidth(3, 160)  # Program
+        self.table.setColumnWidth(4, 80)  # Year Level
 
         table_wrap_lay.addWidget(self.table)
         right_lay.addWidget(right_title)
@@ -185,38 +192,46 @@ class MainWindow(QMainWindow):
         if not data["id"]: return None
         return data
 
-    def insert_row_top(self, name: str, sid: str, prog: str, year: str, t: str, status: str):
+    def insert_row_top(self, timestamp: str, sid: str, name: str, program: str, year_level: str):
         self.table.insertRow(0)
-        self.table.setCellWidget(0, 0, TwoLineCell(name, sid))
-        self.table.setCellWidget(0, 1, TwoLineCell(prog, year))
 
-        time_item = QTableWidgetItem(t)
+        time_item = QTableWidgetItem(timestamp)
         time_item.setTextAlignment(Qt.AlignCenter)
-        self.table.setItem(0, 2, time_item)
+        self.table.setItem(0, 0, time_item)
 
-        pill = StatusPill(status)
-        wrap = QWidget()
-        wrap_l = QHBoxLayout(wrap)
-        wrap_l.setContentsMargins(0, 0, 0, 0)
-        wrap_l.addStretch(1)
-        wrap_l.addWidget(pill)
-        wrap_l.addStretch(1)
-        self.table.setCellWidget(0, 3, wrap)
-        self.table.setRowHeight(0, 64)
+        id_item = QTableWidgetItem(sid)
+        id_item.setTextAlignment(Qt.AlignCenter)
+        self.table.setItem(0, 1, id_item)
+
+        name_item = QTableWidgetItem(name)
+        self.table.setItem(0, 2, name_item)
+
+        prog_item = QTableWidgetItem(program)
+        self.table.setItem(0, 3, prog_item)
+
+        year_item = QTableWidgetItem(year_level)
+        self.table.setItem(0, 4, year_item)
+
+        self.table.setRowHeight(0, 48)
 
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
 
-    def simulate_test_scan(self):
-        test_payload = """Name: Chris Batumbakal
-                        ID: 2022301122
-                        Course: BSIT"""
+    def search_typed_id(self):
+        typed_id = self.id_input.text().strip()
 
-        parsed = self.parse_qr_payload(test_payload)
-        if not parsed:
-            print("Failed to parse simulated QR payload.")
+        if not typed_id:
+            print("Please enter an ID number.")
             return
-        self.add_scan_to_table(parsed, raw_payload=test_payload)
+
+        parsed = {
+            "id": typed_id,
+            "name": "",
+            "course": "",
+        }
+
+        self.add_scan_to_table(parsed, raw_payload=f"Manual ID Search: {typed_id}")
+        self.id_input.clear()
 
     def add_scan_to_table(self, parsed: dict, raw_payload: str):
         now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
@@ -236,23 +251,22 @@ class MainWindow(QMainWindow):
         reason = result.get("reason", "unknown")
 
         if db_student:
-            display_name = db_student.get("name") or db_student.get("full_name") or "Unknown"
+            display_sid = str(db_student.get("id_number") or qr_data["id"] or "-")
+            display_name = db_student.get("full_name") or "Unknown"
             display_prog = db_student.get("program") or "Unknown"
-            display_year = db_student.get("year") or db_student.get("year_level") or "-"
-            display_sid = db_student.get("id") or db_student.get("id_number") or qr_data["id"] or "-"
+            display_year = str(db_student.get("year_level") or "-")
         else:
             display_name = "Not in Masterlist"
             display_prog = reason.replace("_", " ").title()
-            display_year = "N/A"
             display_sid = qr_data["id"] or "-"
+            display_year = "-"
 
         self.insert_row_top(
-            display_name,
+            now,
             display_sid,
+            display_name,
             display_prog,
             display_year,
-            now,
-            status,
         )
 
     def toggle_camera(self):

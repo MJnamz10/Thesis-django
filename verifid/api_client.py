@@ -1,21 +1,26 @@
-import requests
-from config import API_BASE_URL, API_KEY
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 
 class APIClient:
     def __init__(self):
-        self.base_url = API_BASE_URL.rstrip("/")
-        self.headers = {
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json",
-        }
+        self.conn = None
+        try:
+            self.conn = psycopg2.connect(
+                host=DB_HOST,
+                port=DB_PORT,
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                cursor_factory=RealDictCursor,
+            )
+            print("Connected to PostgreSQL successfully.")
+        except psycopg2.Error as e:
+            print("PostgreSQL connection error:", e)
 
     def verify_student(self, qr_data: dict):
         scanned_id = (qr_data.get("id") or "").strip()
-        scanned_name = (qr_data.get("name") or "").strip()
-        scanned_course = (qr_data.get("course") or "").strip()
-        gate = (qr_data.get("gate") or "Main Gate").strip()
-        qr_payload = qr_data.get("qr_payload") or ""
 
         if not scanned_id:
             return {
@@ -25,47 +30,59 @@ class APIClient:
                 "mismatches": {},
             }
 
-        payload = {
-            "id": scanned_id,
-            "name": scanned_name,
-            "course": scanned_course,
-            "gate": gate,
-            "qr_payload": qr_payload,
-        }
-
-        try:
-            response = requests.post(
-                f"{self.base_url}/students/{scanned_id}/verify",
-                headers=self.headers,
-                json=payload,
-                timeout=5,
-            )
-
-            if response.status_code in (200, 404, 400):
-                data = response.json()
-                return {
-                    "status": data.get("status", "denied"),
-                    "student": data.get("student"),
-                    "reason": data.get("reason", "api_error"),
-                    "mismatches": data.get("mismatches", {}),
-                }
-
-            print(f"API Error {response.status_code}: {response.text}")
+        if self.conn is None:
             return {
                 "status": "denied",
                 "student": None,
-                "reason": "api_error",
+                "reason": "database_not_connected",
                 "mismatches": {},
             }
 
-        except requests.exceptions.RequestException as e:
-            print("API connection error:", e)
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT *
+                    FROM api_student
+                    WHERE id_number = %s
+                    LIMIT 1
+                    """,
+                    (scanned_id,),
+                )
+                student = cur.fetchone()
+
+            print("Fetched student row:", student)
+
+            if not student:
+                return {
+                    "status": "denied",
+                    "student": None,
+                    "reason": "student_not_found",
+                    "mismatches": {},
+                }
+
+            return {
+                "status": "verified",
+                "student": dict(student),
+                "reason": None,
+                "mismatches": {},
+            }
+
+        except psycopg2.Error as e:
+            print("Database query error:", e)
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+
             return {
                 "status": "denied",
                 "student": None,
-                "reason": "network_error",
+                "reason": "database_error",
                 "mismatches": {},
             }
 
     def close(self):
-        pass
+        if self.conn:
+            self.conn.close()
+            self.conn = None
