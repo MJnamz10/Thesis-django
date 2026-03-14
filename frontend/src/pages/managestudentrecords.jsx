@@ -1,36 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
-import { UserPen, Plus } from "lucide-react";
-import { useState } from "react";
-import AddStudentModal from "./AddStudentModal"; // adjust path if needed
-import { Download } from "lucide-react";
+import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye } from "lucide-react";
+import AddStudentModal from "./AddStudentModal"; 
 
 export default function ManageStudentRecords() {
   const navigate = useNavigate();
-
   const location = useLocation();
+
+  // 1. ALL STATE HOOKS MUST BE AT THE TOP LEVEL
   const [openModal, setOpenModal] = useState(false);
-
   const [selectedStudent, setSelectedStudent] = useState(null);
-  
-
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDetailStudent, setSelectedDetailStudent] = useState(null); // ✅ Moved up here safely!
 
   const { students, loading, refresh } = useStudents();
 
+  // Helper function to handle image paths securely
+  const getFullImageUrl = (path) => {
+    if (!path) return "/images/default-avatar.png"; 
+    return path.startsWith('http') ? path : `http://127.0.0.1:8000${path}`;
+  };
+
   const handleEditClick = (student) => {
-    setSelectedStudent(student); // Set the student data
-    setOpenModal(true); // Open the modal
+    setSelectedStudent(student); 
+    setOpenModal(true); 
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    setSelectedStudent(null); // Reset when closing
+    setSelectedStudent(null); 
   };
 
-  // 2. Logic to filter students based on ID or Name
   const filteredStudents = students.filter((student) => {
     const query = searchQuery.toLowerCase();
     return (
@@ -47,42 +49,21 @@ export default function ManageStudentRecords() {
         University of Science and Technology of Southern Philippines
       </h1>
       <div className="container1">
-        <div
-          className={location.pathname === "/" ? "active-item" : "item"}
-          onClick={() => navigate("/")}
-        >
-          <img src="/images/Icon.png" className="icon1" alt="icon" />
-          Dashboard
+        <div className={location.pathname === "/" ? "active-item" : "item"} onClick={() => navigate("/")}>
+          <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
         </div>
-
-        <div
-          className={
-            location.pathname === "/accesslogs" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/accesslogs")}
-        >
-          <img src="/images/Icon (2).png" className="icon3" alt="icon" />
-          Access Logs
+        <div className={location.pathname === "/accesslogs" ? "active-item" : "item"} onClick={() => navigate("/accesslogs")}>
+          <img src="/images/Icon (2).png" className="icon3" alt="icon" /> Access Logs
         </div>
-        <div
-          className={
-            location.pathname === "/managestudentrecords"
-              ? "active-item"
-              : "item"
-          }
-          onClick={() => navigate("/managestudentrecords")}
-        >
-          <UserPen className="icon2" alt="icon" />
-          Manage Student Records
+        <div className={location.pathname === "/managestudentrecords" ? "active-item" : "item"} onClick={() => navigate("/managestudentrecords")}>
+          <UserPen className="icon2" alt="icon" /> Manage Student Records
         </div>
       </div>
+      
       <div className="container2">
-        <div className="text1">
-          <p>Manage Student Records</p>
-        </div>
-        <div className="text2">
-          <p>Create, update, and manage student information.</p>
-        </div>
+        <div className="text1"><p>Manage Student Records</p></div>
+        <div className="text2"><p>Create, update, and manage student information.</p></div>
+        
         <input
           className="search-bar"
           type="text"
@@ -90,21 +71,19 @@ export default function ManageStudentRecords() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <img
-          src="/images/search-icon.png"
-          className="search-icon"
-          alt="search"
-        />
+        <img src="/images/search-icon.png" className="search-icon" alt="search" />
+        
         <div className="buttons">
           <button className="select-button1" onClick={() => setOpenModal(true)}>
             <Plus className="icon6" /> Add Student Record
-          </button>{" "}
+          </button>
         </div>
         <div className="buttons1">
           <button className="export-button">
             <Download className="icon6" /> Export CSV
-          </button>{" "}
+          </button>
         </div>
+
         <div className="table-container">
           <table className="table">
             <thead>
@@ -121,54 +100,59 @@ export default function ManageStudentRecords() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: "center" }}>
-                    Loading...
-                  </td>
-                </tr>
+                <tr><td colSpan="8" style={{ textAlign: "center" }}>Loading...</td></tr>
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <tr key={student.id_number}>
                     <td>
-                      {student.photo ? (
-                        <img
-                          src={student.photo}
-                          alt={student.full_name}
-                          className="student-photo-thumbnail"
-                          onError={(e) => {
-                            e.target.src = "/images/default-avatar.png";
-                          }}
-                        />
-                      ) : (
-                        <div className="photo-placeholder">No Image</div>
-                      )}
+                      <img
+                        src={getFullImageUrl(student.photo)}
+                        alt={student.full_name}
+                        className="student-photo-thumbnail"
+                        onError={(e) => { e.target.src = "/images/default-avatar.png"; }}
+                      />
                     </td>
                     <td>{student.id_number}</td>
                     <td>{student.full_name}</td>
                     <td>{student.program}</td>
                     <td>{student.year_level}</td>
                     <td>{student.validity_status}</td>
-                    <td>
-                      <img src="/images/qr-sample.png" width="24" alt="qr" />
-                    </td>
-                    <td>
-                      <UserPen
-                        size={18}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleEditClick(student)}
-                      />
-                    </td>
+                    
+                    {/* ✅ UPDATED CLICKABLE QR CODE TD */}
+<td>
+  {student.qr_code ? (
+    <img 
+      src={getFullImageUrl(student.qr_code)} 
+      width="40" 
+      alt="Student QR" 
+    />
+  ) : (
+    <span style={{ fontSize: "12px", color: "gray" }}>No QR</span>
+  )}
+</td>
+
+  <td>
+  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+    <Eye 
+      size={18} 
+      style={{ cursor: "pointer", color: "#475467" }} 
+      title="View Details"
+      onClick={() => setSelectedDetailStudent(student)} 
+    />
+    <UserPen 
+      size={18} 
+      style={{ cursor: "pointer", color: "#475467" }} 
+      title="Edit Record"
+      onClick={() => handleEditClick(student)} 
+    />
+  </div>
+</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="8"
-                    style={{ textAlign: "center", padding: "20px" }}
-                  >
-                    {searchQuery
-                      ? `No results found for "${searchQuery}"`
-                      : "No student records available."}
+                  <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
+                    {searchQuery ? `No results found for "${searchQuery}"` : "No student records available."}
                   </td>
                 </tr>
               )}
@@ -176,17 +160,108 @@ export default function ManageStudentRecords() {
           </table>
         </div>
       </div>
+
       <AddStudentModal
-        /* Adding a 'key' ensures that React treats each edit/add session 
-     as a fresh component. This prevents the "synchronous setState" 
-     warning and ensures the form is always clean.
-  */
         key={selectedStudent ? selectedStudent.id_number : "new-student"}
         open={openModal}
         onClose={handleCloseModal}
         refreshData={refresh}
         editData={selectedStudent}
       />
+
+      {/* ✅ ADDED THE COMPREHENSIVE MODAL OVERLAY */}
+      {selectedDetailStudent && (
+        <div 
+          onClick={() => setSelectedDetailStudent(null)} 
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.7)", display: "flex",
+            justifyContent: "center", alignItems: "center",
+            zIndex: 9999, cursor: "zoom-out",
+          }}
+        >
+          <div 
+            style={{ 
+              background: "white", padding: "24px", borderRadius: "16px",
+              width: "480px", display: "flex", flexDirection: "column", cursor: "default",
+            }}
+            onClick={(e) => e.stopPropagation()} 
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Student Details</h2>
+                    <p style={{ fontSize: '14px', color: 'gray', margin: '4px 0 0 0' }}>Complete student information</p>
+                </div>
+                <button style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: 'gray' }} onClick={() => setSelectedDetailStudent(null)}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <img 
+                  src={getFullImageUrl(selectedDetailStudent.photo)} 
+                  alt={selectedDetailStudent.full_name} 
+                  style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px' }} 
+                  onError={(e) => { e.target.src = "/images/default-avatar.png"; }}
+                />
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0' }}>{selectedDetailStudent.full_name}</h3>
+                <p style={{ fontSize: '14px', color: 'gray', margin: '8px 0 16px 0' }}>{selectedDetailStudent.id_number}</p>
+                
+                <div style={{ 
+                    backgroundColor: selectedDetailStudent.validity_status === 'VERIFIED' ? '#EBF8F2' : selectedDetailStudent.validity_status === 'INVALID' ? '#FEEDEA' : '#F2F4F7',
+                    color: selectedDetailStudent.validity_status === 'VERIFIED' ? '#1B9B62' : selectedDetailStudent.validity_status === 'INVALID' ? '#CB2B21' : '#616161',
+                    padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '14px', marginBottom: '20px', textTransform: 'capitalize'
+                }}>
+                    {selectedDetailStudent.validity_status.replace('_', ' ')}
+                </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' ,}} />
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '80px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><GraduationCap size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Program</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.program}</span>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><CalendarDays size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Year Level</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>
+                          {{ "1": "1st Year", "2": "2nd Year", "3": "3rd Year", "4": "4th Year", "5": "5th Year" }[selectedDetailStudent.year_level] || selectedDetailStudent.year_level}
+                        </span>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><UserCircle2 size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Student ID</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.id_number}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+                <img 
+                  src={getFullImageUrl(selectedDetailStudent.qr_code)} 
+                  alt="Zoomed Student QR" 
+                  style={{ width: "200px", height: "200px", marginBottom: '20px', objectFit: 'contain' }} 
+                />
+            </div>
+
+            <button 
+              style={{ width: "100%", background: '#101828', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+              onClick={() => setSelectedDetailStudent(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
