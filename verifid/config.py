@@ -19,4 +19,4 @@ SVG_PATH = os.path.join(BASE_DIR, "Verifi.svg")
 MODEL_PATH = os.path.join(BASE_DIR, "model", "best.pt")
 
 # Hardware Configuration
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cpu"

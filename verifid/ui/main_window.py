@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
         self.cap = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
-        self.camera_index = 1
+        self.camera_index = 0
         self.qr = cv2.QRCodeDetector()
 
         self.dedupe_enabled = False
@@ -276,9 +276,9 @@ class MainWindow(QMainWindow):
             self.stop_camera()
 
     def start_camera(self):
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
         if not self.cap.isOpened():
-            self.preview.setText("Camera not found \nTry camera_index = 1")
+            self.preview.setText("Camera not found \nTry camera_index = 0")
             self.cap.release()
             self.cap = None
             return
