@@ -51,8 +51,6 @@ class APIClient:
                 )
                 student = cur.fetchone()
 
-            print("Fetched student row:", student)
-
             if not student:
                 return {
                     "status": "denied",
