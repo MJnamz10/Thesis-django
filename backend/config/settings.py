@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api',        # From your original list
     'verifid',    # Our new scanner app
+    'qr_generator',
 ]
 
 MIDDLEWARE = [

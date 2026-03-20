@@ -1,6 +1,11 @@
+asgiref==3.11.1
 Django==4.2
-djangorestframework==3.14.0
 django-cors-headers==3.13.0
-django-environ==0.8.1
-psycopg[binary]==3.1.20
-Pillow
+django-environ==0.13.0
+djangorestframework==3.14.0
+pillow==12.1.1
+psycopg==3.3.0
+psycopg-binary==3.3.0
+pytz==2026.1.post1
+qrcode==8.2
+sqlparse==0.5.5
