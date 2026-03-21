@@ -72,6 +72,11 @@ body {
   cursor: pointer;
   position: relative;
   bottom: 2px;
+  color: black;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+   filter: invert(1); 
 }
 
 .active-item {

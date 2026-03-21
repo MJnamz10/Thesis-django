@@ -34,6 +34,16 @@ class MainWindow(QMainWindow):
         self.camera_index = 0
         self.qr = cv2.QRCodeDetector()
 
+        self.heartbeat_timer = QTimer(self)
+        self.heartbeat_timer.timeout.connect(self.send_heartbeat)
+        self.heartbeat_timer.start(3000)  # every 3 seconds
+
+        self.daily_refresh_timer = QTimer(self)
+        self.daily_refresh_timer.timeout.connect(self.check_for_new_day)
+        self.daily_refresh_timer.start(60000)
+
+        self.current_date = datetime.now().date()
+
         self.dedupe_enabled = False
         self.seen_qr = set()
         self.cooldown_ms = 1200
@@ -54,6 +64,15 @@ class MainWindow(QMainWindow):
 
         self.setup_ui()
         self.apply_styles()
+
+        self.load_saved_logs()
+
+    def check_for_new_day(self):
+        today = datetime.now().date()
+        if today != self.current_date:
+            self.current_date = today
+            self.load_saved_logs()
+            print("New day detected. Main window table refreshed.")
 
     def setup_ui(self):
         root = QWidget()
@@ -217,6 +236,28 @@ class MainWindow(QMainWindow):
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
 
+    def load_saved_logs(self):
+        try:
+            rows = self.api.get_today_logs(limit=200)
+
+            self.table.setRowCount(0)
+
+            for row in reversed(rows):
+                created_at = row.get("created_at")
+                timestamp = created_at.strftime("%I:%M:%S %p").lstrip("0") if created_at else ""
+
+                self.insert_row_top(
+                    timestamp,
+                    str(row.get("id_number") or ""),
+                    row.get("full_name") or "",
+                    row.get("program") or "",
+                    str(row.get("year_level") or ""),
+                )
+
+            print(f"Loaded {len(rows)} logs for today.")
+        except Exception as e:
+            print("Failed to load saved logs:", e)
+
     def search_typed_id(self):
         typed_id = self.id_input.text().strip()
 
@@ -268,6 +309,12 @@ class MainWindow(QMainWindow):
             display_prog,
             display_year,
         )
+
+    def send_heartbeat(self):
+        try:
+            self.api.send_heartbeat()
+        except Exception as e:
+            print("Heartbeat failed:", e)
 
     def toggle_camera(self):
         if self.cap is None:
@@ -365,8 +412,36 @@ class MainWindow(QMainWindow):
         self.preview.setPixmap(pix)
 
     def closeEvent(self, event):
-        self.stop_camera()
-        self.api.close()
+        try:
+            self.heartbeat_timer.stop()
+        except Exception:
+            pass
+
+        try:
+            self.heartbeat_timer.stop()
+        except Exception:
+            pass
+
+        try:
+            self.daily_refresh_timer.stop()
+        except Exception:
+            pass
+
+        try:
+            self.api.send_offline()
+        except Exception as e:
+            print("Failed to send offline status:", e)
+
+        try:
+            self.stop_camera()
+        except Exception:
+            pass
+
+        try:
+            self.api.close()
+        except Exception:
+            pass
+
         super().closeEvent(event)
 
     def apply_styles(self):

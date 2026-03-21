@@ -102,7 +102,7 @@ export default function Dashboard() {
           </div>
 
           <div className="dash-item">
-            <p className="title1">Access Granted Today</p>
+            <p className="title1">Access Verified Today</p>
             <p style={{ fontSize: 28, fontWeight: 700, color: "green" }}>
               {loading ? "..." : stats.grantedToday}
             </p>
@@ -131,57 +131,183 @@ export default function Dashboard() {
           <section className="dash-containers2" style={{ marginTop: "20px" }}>
             <div className="dash-header">
               <div className="txt1">
-                <p>Recent Scans</p>
+                <p>Recent Access Activity</p>
               </div>
               <div className="txt2">
-                <p>Same records saved by the scanner app</p>
+                <p>Latest student access attempts at Main Gate</p>
               </div>
             </div>
 
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div
+              style={{
+                overflowX: "auto",
+                border: "3px solid #ECECF0",
+                borderRadius: "10px",
+                overflow: "hidden",
+                minHeight: "425px",
+                height: "100%",
+              }}
+              >
+              <table
+                style={{
+                  width: "100%", // 👈 not 100% so it can visually center
+                  margin: "0 auto", // 👈 centers horizontally
+                  borderCollapse: "collapse",
+                }}
+              >
                 <thead>
                   <tr>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                    <th
+                      style={{
+                        width: "18%",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
                       Timestamp
                     </th>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
-                      ID Number
+                    <th
+                      style={{
+                        width: "16%",
+                        textAlign: "center",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
+                      Student ID
                     </th>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>Name</th>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                    <th
+                      style={{
+                        width: "20%",
+                        textAlign: "center",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
+                      Student Name
+                    </th>
+                    <th
+                      style={{
+                        width: "16%",
+                        textAlign: "center",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
                       Program
                     </th>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
-                      Year Level
+                    <th
+                      style={{
+                        width: "10%",
+                        textAlign: "center",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
+                      Year
                     </th>
-                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
-                      Status
+                    <th
+                      style={{
+                        width: "20%",
+                        textAlign: "center",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                      }}
+                    >
+                      Validity
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
+                      <td
+                        colSpan="6"
+                        style={{ padding: "10px", color: "gray" }}
+                      >
                         Loading...
                       </td>
                     </tr>
                   ) : recentScans.length === 0 ? (
                     <tr>
-                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
+                      <td
+                        colSpan="6"
+                        style={{ padding: "10px", color: "gray", textAlign: "center", verticalAlign: "middle", height: "37vh",}}
+                      >
                         No scan records found.
                       </td>
                     </tr>
                   ) : (
                     recentScans.map((scan) => (
                       <tr key={scan.id}>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.timestamp}</td>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.id_number}</td>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.full_name}</td>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.program}</td>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.year_level}</td>
-                        <td style={{ padding: "10px", color: "gray" }}>{scan.status}</td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "6%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.timestamp}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "5%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.id_number}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "6%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.full_name}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "5.5%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.program}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "4%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.year_level}
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            margin: "0 auto",
+                            paddingLeft: "8 %",
+                            padding: "10px",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {scan.validity}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -189,32 +315,6 @@ export default function Dashboard() {
               </table>
             </div>
           </section>
-        </section>
-
-        <section className="dash-containers2">
-          <div className="dash-header">
-            <div className="txt1">
-              <p>Access Status Overview</p>
-            </div>
-            <div className="txt2">
-              <p>Today's verification results at Main Gate</p>
-            </div>
-          </div>
-
-          <div className="dash-containers3">
-            <div className="dash-item2 granted">
-              <img src="/images/grant.png" alt="" className="icon4" />
-              <p className="title2">
-                Granted: {loading ? "..." : stats.grantedToday}
-              </p>
-            </div>
-            <div className="dash-item2 denied">
-              <img src="/images/denied.png" alt="" className="icon5" />
-              <p className="title2">
-                Denied: {loading ? "..." : stats.deniedToday}
-              </p>
-            </div>
-          </div>
         </section>
       </main>
     </div>
