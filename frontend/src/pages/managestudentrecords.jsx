@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
-import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye } from "lucide-react";
+import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye, Search} from "lucide-react";
 import AddStudentModal from "./AddStudentModal"; 
 
 export default function ManageStudentRecords() {
@@ -60,28 +60,36 @@ export default function ManageStudentRecords() {
         </div>
       </div>
       
-      <div className="container2">
-        <div className="text1"><p>Manage Student Records</p></div>
-        <div className="text2"><p>Create, update, and manage student information.</p></div>
-        
-        <input
-          className="search-bar"
-          type="text"
-          placeholder="Search by name or student ID..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <img src="/images/search-icon.png" className="search-icon" alt="search" />
-        
-        <div className="buttons">
-          <button className="select-button1" onClick={() => setOpenModal(true)}>
-            <Plus className="icon6" /> Add Student Record
-          </button>
+<div className="container2">
+        {/* --- Top Header Row --- */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+          <div>
+            <div style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#0a0a0a' }}>Manage Student Records</div>
+            <div style={{ margin: '4px 0 0 0', color: 'gray', fontSize: '14px' }}>Create, update, and manage student information.</div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="export-button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500', color: '#1c398e' }}>
+              <Download size={16} /> Export CSV
+            </button>
+            <button onClick={() => setOpenModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#1c398e', color: 'white', cursor: 'pointer', fontWeight: '500' }}>
+              <Plus size={16} /> Add Student Record
+            </button>
+          </div>
         </div>
-        <div className="buttons1">
-          <button className="export-button">
-            <Download className="icon6" /> Export CSV
-          </button>
+
+        {/* --- Search Bar Row --- */}
+        <div style={{ display: 'flex', marginBottom: '24px' }}>
+          <div style={{ position: 'relative', flex: 1, maxWidth: '100%' }}>
+            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'gray' }} />
+            <input
+              type="text"
+              placeholder="Search by name or student ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: '#F9FAFB', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
         </div>
 
         <div className="table-container">

@@ -4,65 +4,66 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* hides scrolling */
+  overflow: hidden; /* hides scrolling on the main page */
 }
 
 body {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* center vertically */
-  align-items: center; /* center horizontally */
+  justify-content: center; 
+  align-items: center; 
   background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
 }
+
+/* --- HEADER & NAVIGATION --- */
 .logo {
   width: 185px;
   height: auto;
   position: absolute;
-  bottom: auto;
   left: 50px;
   top: 15px;
 }
+
 .school {
   font-family: "Arimo", sans-serif;
   font-weight: 700;
   color: #4a5565;
   position: absolute;
-  bottom: auto;
   left: 80px;
   top: 80px;
   font-size: 16px;
 }
+
 .icon1,
 .icon2,
 .icon3 {
   width: 15px;
   height: auto;
-  margin-right: 5px; /* use spacing, not position */
+  margin-right: 5px;
   position: relative;
   bottom: 1px;
 }
+
 .container1 {
-  width: fit-content;          /* 👈 only as wide as needed */
-  max-width: 90%;              /* prevent overflow */
+  width: fit-content;
+  max-width: 90%;
   margin: 0 auto;     
-  height: 38px;           /* 👈 centers it */
-  
+  height: 38px;
   background-color: #efefef;
   border-radius: 999px;
   padding: 8px;
   color: black;
-
   display: flex;
   gap: 10px;
   flex-wrap: nowrap;
-
   box-sizing: border-box;
-  justify-self: center; /* ✅ centers within grid parent */
+  justify-self: center;
 }
+
 .item,
 .active-item {
-  width: 860px;
-  height: 25px; /* SAME HEIGHT */
+  width: 860px; /* Note: You might want to change this to 'auto' with padding later so it fits the text better */
+  height: 25px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,13 +76,17 @@ body {
 
 .active-item {
   background-color: white;
-  position: relative;
-  bottom: 2px;
 }
+
+/* --- MAIN DASHBOARD AREA --- */
 .container2 {
   display: flex;
+  flex-direction: column; /* Stacks items vertically */
+  padding: 30px;          /* Pushes content away from the borders */
+  box-sizing: border-box; /* Ensures padding doesn't make the box wider than 1370px */
+  
   width: 1370px;
-  height: 740px; /* will be changed to dynamic later since number of data is not fixed */
+  height: 740px; 
   background-color: white;
   border-radius: 14px;
   position: absolute;
@@ -89,105 +94,40 @@ body {
   left: 80px;
   border: 2px solid #e5e7eb;
 }
-.text1 {
-  font-family: "Arimo", sans-serif;
-  font-size: 14px;
-  color: #0a0a0a;
-  position: absolute;
-  top: 20px;
-  left: 30px;
-}
-.text2 {
-  font-family: "Arimo", sans-serif;
-  font-size: 14px;
-  color: #717182;
-  position: absolute;
-  top: 40px;
-  left: 30px;
-}
-.search-bar {
-  width: 1030px;
-  height: 30px;
-  border-radius: 10px;
-  position: absolute;
-  border: none;
-  background-color: #f3f3f5;
-  top: 100px;
-  left: 30px;
-  padding-left: 50px;
-  color: #717182;
-  font-family: "Arimo", sans-serif;
-}
-.search-icon {
-  width: 15px;
-  height: auto;
-  position: absolute;
-  top: 108px;
-  left: 45px;
-}
-.search-bar:focus {
-  border: none;
-  outline: none;
-}
-.export-button {
-  width: 120px;
-  height: 35px;
-  border-radius: 8px;
-  position: absolute;
-  top: 40px;
-  right: 30px;
-  background-color: #ffffff;
-  color: black;
-  font-family: "Arimo", sans-serif;
-  border: 1px solid #d1d5db;
-  cursor: pointer;
-  padding-left: 20px;
-}
-.export-button:active {
-  background-color: gray;
-  color: black;
-}
-.export-icon {
-  width: 15px;
-  height: auto;
-  position: absolute;
-  top: 48px;
-  right: 125px;
-}
-.buttons {
-  display: flex;
-  gap: 10px;
-  position: absolute;
-  top: 100px;
-  right: 30px;
-}
-.select-button {
-  border-radius: 8px;
-  border: none;
-  width: auto;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-}
-.select-button:focus {
-  outline: none;
-  background-color: black;
-  color: white;
-}
-.select-button:hover {
-  cursor: pointer;
-}
+
+/* --- TABLE STYLING --- */
 .table-container {
-  height: 550px;
-  position: absolute;
-  top: 150px;
-  left: 30px;
+  flex: 1;                /* Automatically takes up all remaining space at the bottom */
+  width: 100%;
   background-color: white;
   border-radius: 10px;
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
+  overflow-y: auto;       /* Adds a scrollbar to the table if it gets too long */
 }
-.table{
-  width: 1300px;
+
+.table {
+  width: 100%;
   border-collapse: collapse;
+  text-align: left;
+  font-family: "Arimo", sans-serif;
+}
+
+.table th, .table td {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #344054;
+}
+
+.table th {
+  background-color: #f9fafb;
+  color: #475467;
+  font-weight: 600;
+  font-size: 14px;
+  position: sticky;       /* Keeps headers visible when scrolling */
+  top: 0;
+  z-index: 1;
+}
+
+.table td {
+  font-size: 14px;
 }
