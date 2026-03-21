@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Count
+from datetime import timedelta
 
 from api.models import Student
-from .models import ScanLog
+from .models import ScanLog, ScannerStatus
 
 EXPECTED_API_KEY = getattr(settings, "GATE_API_KEY", "USTP_Gate_Scanner_Key_9x8B2vL5y")
 
@@ -132,53 +132,95 @@ def verify_student(request):
             status=status.HTTP_404_NOT_FOUND
         )
     
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.utils import timezone
-
-from api.models import Student
-from .models import ScanLog
 
 
+
+from datetime import timedelta
 from django.utils import timezone
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from api.models import Student
-from .models import ScanLog
+from .models import ScanLog, ScannerStatus
 
 
 @api_view(["GET"])
 def dashboard_data(request):
     today = timezone.localdate()
+    now = timezone.now()
+    stale_after = now - timedelta(seconds=10)
 
-    total_students = Student.objects.count()
+    scanner = ScannerStatus.objects.filter(scanner_name="main_window").first()
+    scanner_online = bool(
+        scanner and scanner.is_online and scanner.last_seen >= stale_after
+    )
 
-    today_logs = ScanLog.objects.filter(created_at__date=today).order_by("-created_at")
-    recent_logs = ScanLog.objects.all().order_by("-created_at")[:10]
+    today_logs = ScanLog.objects.filter(created_at__date=today)
 
-    granted_today = today_logs.filter(status="granted").count()
-    denied_today = today_logs.filter(status="denied").count()
-    traffic_today = today_logs.count()
+    if scanner_online:
+        recent_logs = ScanLog.objects.all().order_by("-created_at")[:10]
 
-    recent_scans = [
-        {
-            "id": log.id,
-            "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
-            "id_number": log.id_number or "",
-            "full_name": log.full_name or "",
-            "program": log.program or "",
-            "year_level": log.year_level or "",
-            "status": log.status,
-            "reason": log.reason or "",
-            "gate": log.gate,
-            "qr_payload": log.qr_payload,
-            "created_at": log.created_at.isoformat(),
-        }
-        for log in recent_logs
-    ]
+        total_students = (
+            today_logs
+            .values("id_number")
+            .exclude(id_number__isnull=True)
+            .exclude(id_number="")
+            .distinct()
+            .count()
+        )
+
+        granted_today = 0
+        denied_today = 0
+        traffic_today = today_logs.count()
+
+        for log in today_logs:
+            if not log.id_number:
+                denied_today += 1
+                continue
+
+            student = Student.objects.filter(id_number=log.id_number).first()
+
+            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+                granted_today += 1
+            else:
+                denied_today += 1
+
+        recent_scans = []
+
+        for log in recent_logs:
+            student = Student.objects.filter(id_number=log.id_number).first()
+
+            if student:
+                validity = (
+                    "VERIFIED"
+                    if student.validity_status == Student.ValidityStatus.VERIFIED
+                    else "NOT VERIFIED"
+                )
+            else:
+                validity = "NOT VERIFIED"
+
+            recent_scans.append({
+                "id": log.id,
+                "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+                "id_number": log.id_number or "",
+                "full_name": log.full_name or "",
+                "program": log.program or "",
+                "year_level": log.year_level or "",
+                "validity": validity,   # 👈 ADD THIS
+                "status": log.status,   # (optional, you can remove later)
+                "reason": log.reason or "",
+                "gate": log.gate,
+                "qr_payload": log.qr_payload,
+                "created_at": log.created_at.isoformat(),
+            })
+    else:
+        total_students = 0
+        granted_today = 0
+        denied_today = 0
+        traffic_today = 0
+        recent_scans = []
 
     return Response({
+        "scannerOnline": scanner_online,
         "stats": {
             "totalStudents": total_students,
             "grantedToday": granted_today,
@@ -187,3 +229,34 @@ def dashboard_data(request):
         },
         "recentScans": recent_scans,
     })
+
+@api_view(["POST"])
+def scanner_heartbeat(request):
+    scanner_name = request.data.get("scanner_name", "main_window")
+    gate = request.data.get("gate", "Main Gate")
+
+    scanner, _ = ScannerStatus.objects.get_or_create(
+        scanner_name=scanner_name,
+        defaults={"gate": gate}
+    )
+
+    scanner.gate = gate
+    scanner.is_online = True
+    scanner.last_seen = timezone.now()
+    scanner.save()
+
+    return Response({"message": "heartbeat received"})
+
+@api_view(["POST"])
+def scanner_offline(request):
+    scanner_name = request.data.get("scanner_name", "main_window")
+
+    try:
+        scanner = ScannerStatus.objects.get(scanner_name=scanner_name)
+        scanner.is_online = False
+        scanner.last_seen = timezone.now()
+        scanner.save()
+    except ScannerStatus.DoesNotExist:
+        pass
+
+    return Response({"message": "scanner marked offline"})

@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 
 class ScanLog(models.Model):
     id_number = models.CharField(max_length=50, null=True, blank=True)
@@ -17,3 +17,12 @@ class ScanLog(models.Model):
 
     def __str__(self):
         return f"{self.id_number} - {self.status}"
+    
+class ScannerStatus(models.Model):
+    scanner_name = models.CharField(max_length=100, unique=True, default="main_window")
+    gate = models.CharField(max_length=50, default="Main Gate")
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.scanner_name} - {'online' if self.is_online else 'offline'}"
