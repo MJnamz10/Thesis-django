@@ -16,6 +16,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SVG_PATH = os.path.join(BASE_DIR, "Verifi.svg")
 MODEL_PATH = os.path.join(BASE_DIR, "model", "best.pt")
 
+# NEW: backend/media paths
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+BACKEND_DIR = os.path.join(PROJECT_ROOT, "backend")
+MEDIA_DIR = os.path.join(BACKEND_DIR, "media")
+STUDENT_PHOTOS_DIR = os.path.join(MEDIA_DIR, "student_photos")
+
 # -----------------------------
 # Runtime
 # -----------------------------

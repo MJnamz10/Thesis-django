@@ -1,5 +1,8 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QSizePolicy
+)
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 
 
 def create_card():
@@ -19,8 +22,11 @@ class TwoLineCell(QWidget):
         self.setObjectName("twoLineCell")
 
         lay = QVBoxLayout(self)
+
+        # 🔥 KEY FIXES HERE
         lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(4)
+        lay.setSpacing(2)  # smaller gap between lines
+        lay.setAlignment(Qt.AlignVCenter)  # center vertically
 
         self.top = QLabel(top)
         self.top.setObjectName("cellTop")
@@ -35,6 +41,10 @@ class TwoLineCell(QWidget):
             self.top.setAlignment(Qt.AlignLeft)
             self.bottom.setAlignment(Qt.AlignLeft)
 
+        # 🔥 IMPORTANT: prevent stretching
+        self.top.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.bottom.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
         lay.addWidget(self.top)
         lay.addWidget(self.bottom)
 
@@ -46,8 +56,37 @@ class StatusPill(QLabel):
 
         t = (text or "").lower().strip()
         self.setObjectName("pillGranted" if t == "granted" else "pillDenied")
-        self.setMinimumWidth(92)
-        self.setFixedHeight(30)
+        self.setMinimumWidth(82)
+        self.setFixedHeight(26)
+
+
+class StudentPhotoCell(QWidget):
+    def __init__(self, image_path: str | None = None):
+        super().__init__()
+        self.setObjectName("studentPhotoCell")
+
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(6, 4, 6, 4)
+        lay.setAlignment(Qt.AlignCenter)
+
+        self.photo = QLabel()
+        self.photo.setObjectName("studentPhoto")
+        self.photo.setFixedSize(90, 110)
+        self.photo.setAlignment(Qt.AlignCenter)
+
+        pix = QPixmap(image_path) if image_path else QPixmap()
+        if not pix.isNull():
+            self.photo.setPixmap(
+                pix.scaled(
+                    self.photo.size(),
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation
+                )
+            )
+        else:
+            self.photo.setText("No\nImage")
+
+        lay.addWidget(self.photo)
 
 
 class SegmentButton(QPushButton):

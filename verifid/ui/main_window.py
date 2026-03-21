@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 import cv2
+import os
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QPushButton, QLineEdit,
@@ -16,12 +17,14 @@ from config import (
     DISPLAY_WIDTH,
     DISPLAY_HEIGHT,
     PROCESS_EVERY_N_FRAMES,
+    MEDIA_DIR,
+    STUDENT_PHOTOS_DIR,
 )
 from api_client import APIClient
 from services.camera_service import CameraService
 from services.scan_manager import ScanManager
 from services.detection_worker import DetectionWorker
-from ui.components import create_card
+from ui.components import create_card, TwoLineCell, StatusPill, StudentPhotoCell
 
 
 class MainWindow(QMainWindow):
@@ -31,6 +34,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("VerifID - QR Scanner")
         self.resize(1180, 760)
+
+        self.last_submitted_frame = None
+        self.last_display_frame = None
 
         self.api = APIClient()
         self.camera = CameraService()
@@ -157,18 +163,19 @@ class MainWindow(QMainWindow):
 
         self.table = QTableWidget(0, 5)
         self.table.setObjectName("table")
-        self.table.setHorizontalHeaderLabels(["Timestamp", "ID Number", "Name", "Program", "Year Level"])
+        self.table.setHorizontalHeaderLabels(["Student", "Name & ID No.", "Program & Year", "Time", "Status"])
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setSelectionMode(QTableWidget.NoSelection)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
+        self.table.setAlternatingRowColors(False)
 
-        self.table.setColumnWidth(0, 120)
-        self.table.setColumnWidth(1, 120)
-        self.table.setColumnWidth(2, 220)
-        self.table.setColumnWidth(3, 160)
-        self.table.setColumnWidth(4, 80)
+        self.table.setColumnWidth(0, 120)    # photo
+        self.table.setColumnWidth(1, 230)   # name + id
+        self.table.setColumnWidth(2, 150)   # program + year
+        self.table.setColumnWidth(3, 110)    # time
+        self.table.setColumnWidth(4, 110)    # status
 
         table_wrap_lay.addWidget(self.table)
 
@@ -180,30 +187,79 @@ class MainWindow(QMainWindow):
         content_lay.addWidget(right_card, 1)
         root_layout.addWidget(content, 1)
 
-    def insert_row_top(self, timestamp: str, sid: str, name: str, program: str, year_level: str):
+    def insert_row_top(
+        self,
+        timestamp: str,
+        sid: str,
+        name: str,
+        program: str,
+        year_level: str,
+        status_text: str,
+        image_path: str | None = None,
+    ):
         self.table.insertRow(0)
 
-        time_item = QTableWidgetItem(timestamp)
-        time_item.setTextAlignment(Qt.AlignCenter)
-        self.table.setItem(0, 0, time_item)
+        # Student photo
+        photo_widget = StudentPhotoCell(image_path=image_path)
+        self.table.setCellWidget(0, 0, photo_widget)
 
-        id_item = QTableWidgetItem(sid)
-        id_item.setTextAlignment(Qt.AlignCenter)
-        self.table.setItem(0, 1, id_item)
+        # Name + ID
+        name_id_widget = TwoLineCell(name, sid)
+        self.table.setCellWidget(0, 1, name_id_widget)
 
-        name_item = QTableWidgetItem(name)
-        self.table.setItem(0, 2, name_item)
+        # Program + Year
+        prog_year_widget = TwoLineCell(program, year_level)
+        self.table.setCellWidget(0, 2, prog_year_widget)
 
-        prog_item = QTableWidgetItem(program)
-        self.table.setItem(0, 3, prog_item)
+        # Time
+        time_widget = TwoLineCell(timestamp, "", top_center=True)
+        time_widget.bottom.hide()
+        self.table.setCellWidget(0, 3, time_widget)
 
-        year_item = QTableWidgetItem(year_level)
-        self.table.setItem(0, 4, year_item)
+        # Status
+        status_wrap = QWidget()
+        status_lay = QHBoxLayout(status_wrap)
+        status_lay.setContentsMargins(0, 0, 0, 0)
+        status_lay.setAlignment(Qt.AlignCenter)
+        status_lay.addWidget(StatusPill(status_text))
+        self.table.setCellWidget(0, 4, status_wrap)
 
-        self.table.setRowHeight(0, 48)
+        self.table.setRowHeight(0, 120)
 
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
+
+    def resolve_student_image_path(self, db_student):
+        candidates = [
+            db_student.get("student_photos"),
+            db_student.get("photo"),
+            db_student.get("image"),
+            db_student.get("student_photo"),
+        ]
+
+        for value in candidates:
+            if not value:
+                continue
+
+            value = str(value).strip()
+            if not value:
+                continue
+
+            # If already absolute and exists
+            if os.path.isabs(value) and os.path.exists(value):
+                return value
+
+            # If value is like "student_photos/file.png"
+            media_joined = os.path.join(MEDIA_DIR, value)
+            if os.path.exists(media_joined):
+                return media_joined
+
+            # If value is just filename like "file.png"
+            filename_joined = os.path.join(STUDENT_PHOTOS_DIR, value)
+            if os.path.exists(filename_joined):
+                return filename_joined
+
+        return None
 
     def handle_scan_result(self, scan):
         now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
@@ -213,17 +269,28 @@ class MainWindow(QMainWindow):
 
         db_student = result.get("student")
         reason = result.get("reason", "unknown")
+        status = result.get("status", "denied")
 
         if db_student:
             display_sid = str(db_student.get("id_number") or parsed["id"] or "-")
             display_name = db_student.get("full_name") or "Unknown"
             display_prog = db_student.get("program") or "Unknown"
-            display_year = str(db_student.get("year_level") or "-")
+            display_year = f"{db_student.get('year_level', '-')}" + (
+                "th Year" if str(db_student.get("year_level", "")).isdigit() else ""
+            )
+
+            # Change this field name if your DB uses a different one
+            image_path = self.resolve_student_image_path(db_student)
+            print("Resolved image path:", image_path)
+            status_text = "granted" if status == "verified" else "denied"
+
         else:
             display_name = "Not in Masterlist"
             display_prog = reason.replace("_", " ").title()
             display_sid = parsed["id"] or "-"
             display_year = "-"
+            image_path = None
+            status_text = "denied"
 
         self.insert_row_top(
             now,
@@ -231,6 +298,8 @@ class MainWindow(QMainWindow):
             display_name,
             display_prog,
             display_year,
+            status_text,
+            image_path=image_path,
         )
 
     def search_typed_id(self):
@@ -306,13 +375,37 @@ class MainWindow(QMainWindow):
 
         if should_submit and not self.worker_busy:
             self.worker_busy = True
-            self.submit_frame.emit(frame_4k.copy())
+
+            self.last_submitted_frame = frame_4k.copy()
+            self.last_display_frame = display_frame.copy()
+
+            self.submit_frame.emit(self.last_submitted_frame)
 
     def on_worker_result(self, result):
         self.worker_busy = False
 
         self.latest_detections = result.get("detections", [])
-        self.latest_detection_time = result.get("finished_at", time.time())
+        self.latest_detection_time = time.time()
+
+        # 🔥 FORCE SYNC: draw boxes on stored frame
+        if self.last_display_frame is not None and self.last_submitted_frame is not None:
+            synced_frame = self.scan_manager.draw_boxes(
+                self.last_display_frame.copy(),
+                self.latest_detections,
+                self.last_submitted_frame.shape
+            )
+
+            frame_rgb = cv2.cvtColor(synced_frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame_rgb.shape
+            qimg = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
+
+            pix = QPixmap.fromImage(qimg).scaled(
+                self.preview.size(),
+                Qt.KeepAspectRatio,
+                Qt.FastTransformation
+            )
+
+            self.preview.setPixmap(pix)
 
         print(f"[UI] Worker returned {len(self.latest_detections)} detections")
 
@@ -354,10 +447,75 @@ class MainWindow(QMainWindow):
         QPushButton#secondaryBtn:hover { background: #d1d5db; }
         QLineEdit#idInput { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 12px; }
         QLabel#footnote { font-size: 10px; color: #9ca3af; }
-        QFrame#tableWrap { background: #ffffff; border: 1px solid #b9c0cb; border-radius: 12px; }
-        QTableWidget#table { background: transparent; border: none; outline: none; }
-        QHeaderView::section { background: transparent; border: none; border-bottom: 1px solid #b9c0cb; padding: 10px 12px; font-size: 12px; font-weight: 700; color: #111827; }
-        QTableWidget::item { border: none; border-bottom: 1px solid #b9c0cb; padding: 10px 12px; font-size: 12px; color: #111827; }
-        QLabel#pillGranted { background: #0b1020; color: white; border: none; border-radius: 14px; padding: 4px 14px; font-size: 11px; font-weight: 700; }
-        QLabel#pillDenied { background: #e11d48; color: white; border: none; border-radius: 14px; padding: 4px 14px; font-size: 11px; font-weight: 700; }
+        QFrame#tableWrap {
+            background: #ffffff;
+            border: 1px solid #cfd5df;
+            border-radius: 12px;
+        }
+
+        QTableWidget#table {
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+
+        QHeaderView::section {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #d7dbe2;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #3f3f46;
+        }
+
+        QTableWidget::item {
+            border: none;
+            border-bottom: 1px solid #eceff3;
+            padding: 0px;
+        }
+
+        QWidget#twoLineCell QLabel#cellTop {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        QWidget#twoLineCell QLabel#cellBottom {
+            font-size: 13px;
+            color: #111111;
+            margin-top: -1px;
+        }
+
+        QWidget#studentPhotoCell {
+            background: transparent;
+        }
+
+        QLabel#studentPhoto {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            color: #6b7280;
+            font-size: 8px;
+        }
+
+        QLabel#pillGranted {
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        QLabel#pillDenied {
+            background: #e11d48;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
         """)
