@@ -16,20 +16,39 @@ export default function Dashboard() {
     trafficToday: 0,
   });
 
+  const [recentScans, setRecentScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading delay
-    setTimeout(() => {
-      setStats({
-        totalStudents: 1240,
-        grantedToday: 312,
-        deniedToday: 18,
-        trafficToday: 330,
-      });
-      setLoading(false);
-    }, 800);
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE}/api/verifid/dashboard-data`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      const data = await response.json();
+
+      setStats({
+        totalStudents: data.stats?.totalStudents || 0,
+        grantedToday: data.stats?.grantedToday || 0,
+        deniedToday: data.stats?.deniedToday || 0,
+        trafficToday: data.stats?.trafficToday || 0,
+      });
+
+      setRecentScans(data.recentScans || []);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="page">
@@ -107,7 +126,70 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="container6"></section>
+        <section className="container6">
+          {" "}
+          <section className="dash-containers2" style={{ marginTop: "20px" }}>
+            <div className="dash-header">
+              <div className="txt1">
+                <p>Recent Scans</p>
+              </div>
+              <div className="txt2">
+                <p>Same records saved by the scanner app</p>
+              </div>
+            </div>
+
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Timestamp
+                    </th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      ID Number
+                    </th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>Name</th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Program
+                    </th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Year Level
+                    </th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : recentScans.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
+                        No scan records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentScans.map((scan) => (
+                      <tr key={scan.id}>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.timestamp}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.id_number}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.full_name}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.program}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.year_level}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.status}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
 
         <section className="dash-containers2">
           <div className="dash-header">
@@ -122,11 +204,15 @@ export default function Dashboard() {
           <div className="dash-containers3">
             <div className="dash-item2 granted">
               <img src="/images/grant.png" alt="" className="icon4" />
-              <p className="title2">Granted</p>
+              <p className="title2">
+                Granted: {loading ? "..." : stats.grantedToday}
+              </p>
             </div>
             <div className="dash-item2 denied">
               <img src="/images/denied.png" alt="" className="icon5" />
-              <p className="title2">Denied</p>
+              <p className="title2">
+                Denied: {loading ? "..." : stats.deniedToday}
+              </p>
             </div>
           </div>
         </section>

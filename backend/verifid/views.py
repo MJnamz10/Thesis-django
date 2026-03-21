@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import Count
 
 from api.models import Student
 from .models import ScanLog
@@ -16,12 +18,15 @@ def is_authorized(request):
 
 @api_view(["POST"])
 def verify_student(request):
-    if not is_authorized(request):
-        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+    #if not is_authorized(request):
+    #    return Response(
+    #       {"error": "Unauthorized"},
+    #       status=status.HTTP_401_UNAUTHORIZED
+    #   )
 
     scanned_id = request.data.get("id")
-    scanned_name = request.data.get("name")
-    scanned_course = request.data.get("course")
+    scanned_name = request.data.get("name", "")
+    scanned_course = request.data.get("course", "")
     gate = request.data.get("gate", "Main Gate")
     qr_payload = request.data.get("qr_payload", "")
 
@@ -38,12 +43,12 @@ def verify_student(request):
         student = Student.objects.get(id_number=scanned_id)
 
         student_data = {
-            "id": student.id_number,
-            "name": student.full_name,
+            "id_number": student.id_number,
+            "full_name": student.full_name,
             "program": student.program,
-            "year": student.get_year_level_display(),
+            "year_level": student.get_year_level_display(),
             "validity_status": student.validity_status,
-            "photo": student.photo.url if student.photo else None,
+            "photo": student.photo.url if getattr(student, "photo", None) else None,
         }
 
         mismatches = {}
@@ -62,7 +67,7 @@ def verify_student(request):
 
         if student.validity_status != Student.ValidityStatus.VERIFIED:
             scan = ScanLog.objects.create(
-                student_id=student.id_number,
+                id_number=student.id_number,
                 full_name=student.full_name,
                 program=student.program,
                 year_level=student.get_year_level_display(),
@@ -84,7 +89,7 @@ def verify_student(request):
             )
 
         scan = ScanLog.objects.create(
-            student_id=student.id_number,
+            id_number=student.id_number,
             full_name=student.full_name,
             program=student.program,
             year_level=student.get_year_level_display(),
@@ -107,9 +112,10 @@ def verify_student(request):
 
     except Student.DoesNotExist:
         scan = ScanLog.objects.create(
-            student_id=scanned_id,
+            id_number=scanned_id,
             full_name=scanned_name,
             program=scanned_course,
+            year_level="",
             qr_payload=qr_payload,
             gate=gate,
             status="denied",
@@ -125,3 +131,59 @@ def verify_student(request):
             },
             status=status.HTTP_404_NOT_FOUND
         )
+    
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.utils import timezone
+
+from api.models import Student
+from .models import ScanLog
+
+
+from django.utils import timezone
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from api.models import Student
+from .models import ScanLog
+
+
+@api_view(["GET"])
+def dashboard_data(request):
+    today = timezone.localdate()
+
+    total_students = Student.objects.count()
+
+    today_logs = ScanLog.objects.filter(created_at__date=today).order_by("-created_at")
+    recent_logs = ScanLog.objects.all().order_by("-created_at")[:10]
+
+    granted_today = today_logs.filter(status="granted").count()
+    denied_today = today_logs.filter(status="denied").count()
+    traffic_today = today_logs.count()
+
+    recent_scans = [
+        {
+            "id": log.id,
+            "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+            "id_number": log.id_number or "",
+            "full_name": log.full_name or "",
+            "program": log.program or "",
+            "year_level": log.year_level or "",
+            "status": log.status,
+            "reason": log.reason or "",
+            "gate": log.gate,
+            "qr_payload": log.qr_payload,
+            "created_at": log.created_at.isoformat(),
+        }
+        for log in recent_logs
+    ]
+
+    return Response({
+        "stats": {
+            "totalStudents": total_students,
+            "grantedToday": granted_today,
+            "deniedToday": denied_today,
+            "trafficToday": traffic_today,
+        },
+        "recentScans": recent_scans,
+    })

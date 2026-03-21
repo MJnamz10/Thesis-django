@@ -195,7 +195,7 @@ export default function ManageStudentRecords() {
                 <button style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: 'gray' }} onClick={() => setSelectedDetailStudent(null)}>✕</button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#101828' }}>
                 <img 
                   src={getFullImageUrl(selectedDetailStudent.photo)} 
                   alt={selectedDetailStudent.full_name} 
