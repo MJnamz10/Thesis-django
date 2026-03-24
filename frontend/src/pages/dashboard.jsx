@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/dashboard.css";
-import { UserPen } from "lucide-react";
+import { UserPen, LogOut } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -30,7 +30,19 @@ export default function Dashboard() {
       setLoading(false);
     }, 800);
   }, []);
+const handleLogout = () => {
+    // 1. Shred the tokens from both local and session storage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+    
+    // Note: We intentionally DO NOT remove "saved_email" 
+    // so the "Remember Me" feature still works next time!
 
+    // 2. Kick them back to the login page
+    navigate("/");
+  };
   return (
     <div className="page">
       <header className="header">
@@ -41,8 +53,8 @@ export default function Dashboard() {
 
         <nav className="container1">
           <div
-            className={location.pathname === "/" ? "active-item" : "item"}
-            onClick={() => navigate("/")}
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            onClick={() => navigate("/dashboard")}
           >
             <img src="/images/Icon.png" className="icon1" alt="icon" />
             Dashboard
@@ -68,6 +80,14 @@ export default function Dashboard() {
           >
             <UserPen className="icon2" />
             Manage Student Records
+          </div>
+          <div 
+            className="item" 
+            onClick={handleLogout} 
+            style={{ color: '#dc2626', fontWeight: 'bold' }} // Making it red so it stands out!
+          >
+            <LogOut size={16} style={{ marginRight: '6px' }} />
+            Logout
           </div>
         </nav>
       </header>

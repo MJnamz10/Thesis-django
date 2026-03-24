@@ -49,7 +49,7 @@ export default function ManageStudentRecords() {
         University of Science and Technology of Southern Philippines
       </h1>
       <div className="container1">
-        <div className={location.pathname === "/" ? "active-item" : "item"} onClick={() => navigate("/")}>
+        <div className={location.pathname === "/dashboard" ? "active-item" : "item"} onClick={() => navigate("/dashboard")}>
           <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
         </div>
         <div className={location.pathname === "/accesslogs" ? "active-item" : "item"} onClick={() => navigate("/accesslogs")}>
