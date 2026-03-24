@@ -66,7 +66,11 @@ class APIClient:
                 id_number = student.get("id_number") or id_number
                 full_name = student.get("full_name")
                 program = student.get("program")
-                year_level = str(student.get("year_level")) if student.get("year_level") is not None else None
+                year_level = (
+                    str(student.get("year_level"))
+                    if student.get("year_level") is not None
+                    else None
+                )
 
             gate = qr_data.get("gate", "Main Gate")
             qr_payload = qr_data.get("qr_payload", "")
@@ -108,15 +112,16 @@ class APIClient:
             with self.conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT id_number, full_name, program, year_level, created_at
+                    SELECT id_number, full_name, program, year_level, status, created_at
                     FROM verifid_scanlog
-                    WHERE created_at::date = CURRENT_DATE
+                    WHERE DATE(created_at AT TIME ZONE 'Asia/Manila') = DATE(NOW() AT TIME ZONE 'Asia/Manila')
                     ORDER BY created_at DESC
                     LIMIT %s
                     """,
                     (limit,),
                 )
                 rows = cur.fetchall()
+                print("Fetched today logs:", rows)
                 return rows or []
         except psycopg2.Error as e:
             print("Failed to fetch today's logs:", e)
@@ -135,7 +140,7 @@ class APIClient:
             with self.conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT id_number, full_name, program, year_level, created_at
+                    SELECT id_number, full_name, program, year_level, status, created_at
                     FROM verifid_scanlog
                     ORDER BY created_at DESC
                     LIMIT %s
@@ -151,6 +156,32 @@ class APIClient:
             except Exception:
                 pass
             return []
+
+    def get_student_by_id(self, student_id):
+        if self.conn is None:
+            print("Cannot fetch student: database not connected")
+            return None
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT *
+                    FROM api_student
+                    WHERE id_number = %s
+                    LIMIT 1
+                    """,
+                    (student_id,),
+                )
+                student = cur.fetchone()
+                return dict(student) if student else None
+        except psycopg2.Error as e:
+            print("Failed to fetch student by id:", e)
+            try:
+                self.conn.rollback()
+            except Exception:
+                pass
+            return None
 
     def verify_student(self, qr_data: dict):
         scanned_id = (qr_data.get("id") or "").strip()
@@ -186,8 +217,6 @@ class APIClient:
                     (scanned_id,),
                 )
                 student = cur.fetchone()
-
-            print("Fetched student row:", student)
 
             if not student:
                 result = {

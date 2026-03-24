@@ -133,15 +133,18 @@ def verify_student(request):
         )
     
 
+def get_student_photo_url(student):
+    if not student:
+        return None
 
+    photo = getattr(student, "photo", None)
+    if photo:
+        try:
+            return photo.url
+        except Exception:
+            return None
 
-from datetime import timedelta
-from django.utils import timezone
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
-from .models import ScanLog, ScannerStatus
-
+    return None
 
 @api_view(["GET"])
 def dashboard_data(request):
@@ -154,10 +157,11 @@ def dashboard_data(request):
         scanner and scanner.is_online and scanner.last_seen >= stale_after
     )
 
-    today_logs = ScanLog.objects.filter(created_at__date=today)
+    today_logs = ScanLog.objects.filter(created_at__date=today).order_by("-created_at")
 
     if scanner_online:
-        recent_logs = ScanLog.objects.all().order_by("-created_at")[:10]
+        # Same source as main_window.py
+        recent_logs = today_logs[:200]
 
         total_students = (
             today_logs
@@ -189,28 +193,29 @@ def dashboard_data(request):
         for log in recent_logs:
             student = Student.objects.filter(id_number=log.id_number).first()
 
-            if student:
-                validity = (
-                    "VERIFIED"
-                    if student.validity_status == Student.ValidityStatus.VERIFIED
-                    else "NOT VERIFIED"
-                )
+            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+                validity = "VERIFIED"
             else:
                 validity = "NOT VERIFIED"
 
+            local_created_at = timezone.localtime(log.created_at)
+            photo_url = get_student_photo_url(student)
+
             recent_scans.append({
                 "id": log.id,
-                "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+                "timestamp": local_created_at.strftime("%I:%M:%S %p").lstrip("0"),
                 "id_number": log.id_number or "",
                 "full_name": log.full_name or "",
                 "program": log.program or "",
                 "year_level": log.year_level or "",
-                "validity": validity,   # 👈 ADD THIS
-                "status": log.status,   # (optional, you can remove later)
+                "validity": validity,
+                "status": log.status,
                 "reason": log.reason or "",
                 "gate": log.gate,
                 "qr_payload": log.qr_payload,
-                "created_at": log.created_at.isoformat(),
+                "created_at": local_created_at.isoformat(),
+                "photo": photo_url,
+
             })
     else:
         total_students = 0
@@ -260,3 +265,33 @@ def scanner_offline(request):
         pass
 
     return Response({"message": "scanner marked offline"})
+
+@api_view(["GET"])
+def all_logs(request):
+    logs = ScanLog.objects.all().order_by("-created_at")[:500]  # limit optional
+
+    data = []
+    for log in logs:
+
+        student = Student.objects.filter(id_number=log.id_number).first()
+
+        if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+            status_label = "VERIFIED"
+        else:
+            status_label = "NOT VERIFIED"
+
+        photo_url = get_student_photo_url(student)
+
+        data.append({
+            "id": log.id,
+            "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+            "id_number": log.id_number or "",
+            "full_name": log.full_name or "",
+            "program": log.program or "",
+            "year_level": log.year_level or "",
+            "status": status_label,
+            "reason": log.reason or "",
+            "photo": photo_url,
+        })
+
+    return Response(data)

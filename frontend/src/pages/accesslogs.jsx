@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
 // Added Calendar, Download, and Search icons from lucide-react
@@ -7,6 +7,40 @@ import { UserPen, Calendar, Download, Search } from "lucide-react";
 export default function AccessLogs() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const getPhotoSrc = (photo) => {
+    if (!photo) return "/images/default-avatar.png";
+    if (photo.startsWith("http")) return photo;
+    return `${API_BASE}${photo}`;
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE}/api/verifid/all-logs`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch logs");
+      }
+
+      const data = await response.json();
+      setLogs(data);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // State to track which filter is currently active
   const [activeFilter, setActiveFilter] = useState("All");
@@ -114,9 +148,7 @@ export default function AccessLogs() {
                   color: "#344054",
                   fontFamily: "inherit",
                 }}
-                
               />
-            
             </div>
 
             <button
@@ -205,15 +237,79 @@ export default function AccessLogs() {
           <table className="table">
             <thead>
               <tr>
-                <th>Timestamp</th>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Program & Year</th>
-                <th>Status</th>
-                <th>Reason</th>
+                <th  style={{textAlign: "center"}}>Photo</th>
+                <th  style={{textAlign: "center"}}>Timestamp</th>
+                <th  style={{textAlign: "center"}}>Student ID</th>
+                <th  style={{textAlign: "center"}}>Student Name</th>
+                <th  style={{textAlign: "center"}}>Program & Year</th>
+                <th  style={{textAlign: "center"}}>Status</th>
               </tr>
             </thead>
-            <tbody>{/* Data rows will go here */}</tbody>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    No logs found.
+                  </td>
+                </tr>
+              ) : (
+                logs.map((log) => (
+                  <tr key={log.id}>
+                    <td
+                      style={{
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                        paddingTop: "8px",
+                        textAlign: "center"
+                      }}
+                    >
+                      <img
+                        src={getPhotoSrc(log.photo)}
+                        alt={log.full_name || "Student"}
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          border: "1px solid #E4E7EC",
+                          background: "#F9FAFB",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/default-avatar.png";
+                        }}
+                      />
+                    </td>
+                    <td style={{textAlign: "center" }}>{log.timestamp}</td>
+                    <td style={{textAlign: "center" }}>{log.id_number}</td>
+                    <td style={{textAlign: "center" }}>{log.full_name}</td>
+                    <td style={{textAlign: "center" }}>
+                      {log.program} {log.year_level}
+                    </td>
+                    <td
+                      style={{
+                        color: log.status === "VERIFIED" ? "green" : "red",
+                        fontWeight: "600",
+                        textAlign: "center"
+                      }}
+                    >
+                      {log.status}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
         </div>
       </div>

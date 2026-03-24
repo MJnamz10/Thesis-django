@@ -1,71 +1,85 @@
-import os
-from unittest import result
-import cv2
 from datetime import datetime
-import torch
-from ultralytics import YOLO
+import time
+import cv2
+import os
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QPushButton, QLineEdit,
     QHBoxLayout, QVBoxLayout, QFrame, QTableWidget, QTableWidgetItem,
     QSizePolicy
 )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtSvgWidgets import QSvgWidget
 
-from config import SVG_PATH, MODEL_PATH, DEVICE
+from config import (
+    SVG_PATH,
+    DISPLAY_WIDTH,
+    DISPLAY_HEIGHT,
+    PROCESS_EVERY_N_FRAMES,
+    MEDIA_DIR,
+    STUDENT_PHOTOS_DIR,
+)
 from api_client import APIClient
-from ui.components import create_card, TwoLineCell, StatusPill
+from services.camera_service import CameraService
+from services.scan_manager import ScanManager
+from services.detection_worker import DetectionWorker
+from ui.components import create_card, TwoLineCell, StatusPill, StudentPhotoCell
+
 
 class MainWindow(QMainWindow):
+    submit_frame = Signal(object)
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("VerifID - QR Scanner")
         self.resize(1180, 760)
 
-        # Database Init
-        self.api = APIClient()
+        self.last_submitted_frame = None
+        self.last_display_frame = None
 
-        # Camera & Processing Init
-        self.cap = None
+        self.api = APIClient()
+        self.camera = CameraService()
+        self.scan_manager = ScanManager(self.api)
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
-        self.camera_index = 0
-        self.qr = cv2.QRCodeDetector()
 
         self.heartbeat_timer = QTimer(self)
         self.heartbeat_timer.timeout.connect(self.send_heartbeat)
         self.heartbeat_timer.start(3000)  # every 3 seconds
 
+        self.current_date = datetime.now().date()
         self.daily_refresh_timer = QTimer(self)
         self.daily_refresh_timer.timeout.connect(self.check_for_new_day)
         self.daily_refresh_timer.start(60000)
 
-        self.current_date = datetime.now().date()
 
-        self.dedupe_enabled = False
-        self.seen_qr = set()
-        self.cooldown_ms = 1200
-        self.last_insert_ms = 0
+        self.frame_counter = 0
+        self.latest_detections = []
+        self.latest_source_shape = None
+        self.worker_busy = False
+        self.latest_detection_time = 0.0
+        self.detection_box_ttl = 0.6
 
-        # YOLO Init
-        self.yolo_model = None
-        try:
-            if os.path.exists(MODEL_PATH):
-                self.yolo_model = YOLO(MODEL_PATH)
-                self.yolo_model.to(DEVICE)
-                print(f"YOLO model loaded on {DEVICE}")
-            else:
-                print("YOLO model file not found:", MODEL_PATH)
-        except Exception as e:
-            self.yolo_model = None
-            print("Failed to load YOLO model:", e)
+        self._setup_worker()
 
         self.setup_ui()
         self.apply_styles()
 
         self.load_saved_logs()
+
+    def _setup_worker(self):
+        self.worker_thread = QThread(self)
+        self.worker = DetectionWorker()
+        self.worker.moveToThread(self.worker_thread)
+
+        self.submit_frame.connect(self.worker.process_frame)
+        self.worker.finished.connect(self.on_worker_result)
+        self.worker.error.connect(self.on_worker_error)
+
+        self.worker_thread.start()
+
 
     def check_for_new_day(self):
         today = datetime.now().date()
@@ -83,7 +97,6 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(18, 16, 18, 16)
         root_layout.setSpacing(14)
 
-        # Header
         header = QWidget()
         header_lay = QHBoxLayout(header)
         header_lay.setContentsMargins(6, 0, 6, 0)
@@ -108,16 +121,16 @@ class MainWindow(QMainWindow):
         header_lay.addStretch(1)
         root_layout.addWidget(header)
 
-        # Content Split
         content = QWidget()
         content_lay = QHBoxLayout(content)
         content_lay.setContentsMargins(0, 0, 0, 0)
         content_lay.setSpacing(14)
 
-        # Left Card (Camera)
         left_card, left_lay = create_card()
+
         left_title = QLabel("QR Code Scanner - Main Gate")
         left_title.setObjectName("cardTitle")
+
         left_desc = QLabel("Scan student QR codes for campus entry verification")
         left_desc.setObjectName("cardDesc")
 
@@ -142,7 +155,7 @@ class MainWindow(QMainWindow):
         self.btn_test.setObjectName("secondaryBtn")
         self.btn_test.clicked.connect(self.search_typed_id)
 
-        self.foot = QLabel("In production, this would use device camera for real QR code scanning")
+        self.foot = QLabel("Threaded preview mode: smooth UI + background detection")
         self.foot.setObjectName("footnote")
 
         left_lay.addWidget(left_title)
@@ -153,35 +166,39 @@ class MainWindow(QMainWindow):
         left_lay.addWidget(self.btn_test)
         left_lay.addWidget(self.foot)
 
-        # Right Card (Results)
         right_card, right_lay = create_card()
+
         right_title = QLabel("Verification Result")
         right_title.setObjectName("cardTitle")
+
         right_desc = QLabel("Access decision and student information")
         right_desc.setObjectName("cardDesc")
 
         table_wrap = QFrame()
         table_wrap.setObjectName("tableWrap")
+
         table_wrap_lay = QVBoxLayout(table_wrap)
         table_wrap_lay.setContentsMargins(0, 0, 0, 0)
         table_wrap_lay.setSpacing(0)
 
         self.table = QTableWidget(0, 5)
         self.table.setObjectName("table")
-        self.table.setHorizontalHeaderLabels(["Timestamp", "ID Number", "Name", "Program", "Year Level"])
+        self.table.setHorizontalHeaderLabels(["Student", "Name & ID No.", "Program & Year", "Time", "Status"])
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setSelectionMode(QTableWidget.NoSelection)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
+        self.table.setAlternatingRowColors(False)
 
-        self.table.setColumnWidth(0, 120)  # Timestamp
-        self.table.setColumnWidth(1, 120)  # ID
-        self.table.setColumnWidth(2, 220)  # Name
-        self.table.setColumnWidth(3, 160)  # Program
-        self.table.setColumnWidth(4, 80)  # Year Level
+        self.table.setColumnWidth(0, 120)    # photo
+        self.table.setColumnWidth(1, 230)   # name + id
+        self.table.setColumnWidth(2, 150)   # program + year
+        self.table.setColumnWidth(3, 110)    # time
+        self.table.setColumnWidth(4, 110)    # status
 
         table_wrap_lay.addWidget(self.table)
+
         right_lay.addWidget(right_title)
         right_lay.addWidget(right_desc)
         right_lay.addWidget(table_wrap)
@@ -190,48 +207,44 @@ class MainWindow(QMainWindow):
         content_lay.addWidget(right_card, 1)
         root_layout.addWidget(content, 1)
 
-    def parse_qr_payload(self, payload: str):
-        if not payload: return None
-        raw = payload.strip().replace("\r\n", "\n").replace("\r", "\n")
-        
-        # We now only expect name, id, and course from the QR code
-        data = {"name": "", "id": "", "course": ""}
-
-        lines = [ln.strip() for ln in raw.split("\n") if ln.strip()]
-        
-        def pick_after_colon(s: str):
-            return s.split(":", 1)[1].strip() if ":" in s else ""
-
-        for ln in lines:
-            low = ln.lower()
-            if low.startswith("name"): data["name"] = pick_after_colon(ln)
-            elif low.startswith("id") or "id number" in low or "student id" in low: data["id"] = pick_after_colon(ln)
-            elif low.startswith("course") or low.startswith("program"): data["course"] = pick_after_colon(ln)
-
-        if not data["id"]: return None
-        return data
-
-    def insert_row_top(self, timestamp: str, sid: str, name: str, program: str, year_level: str):
+    def insert_row_top(
+        self,
+        timestamp: str,
+        sid: str,
+        name: str,
+        program: str,
+        year_level: str,
+        status_text: str,
+        image_path: str | None = None,
+    ):
         self.table.insertRow(0)
 
-        time_item = QTableWidgetItem(timestamp)
-        time_item.setTextAlignment(Qt.AlignCenter)
-        self.table.setItem(0, 0, time_item)
+        # Student photo
+        photo_widget = StudentPhotoCell(image_path=image_path)
+        self.table.setCellWidget(0, 0, photo_widget)
 
-        id_item = QTableWidgetItem(sid)
-        id_item.setTextAlignment(Qt.AlignCenter)
-        self.table.setItem(0, 1, id_item)
+        # Name + ID
+        name_id_widget = TwoLineCell(name, sid)
+        self.table.setCellWidget(0, 1, name_id_widget)
 
-        name_item = QTableWidgetItem(name)
-        self.table.setItem(0, 2, name_item)
+        # Program + Year
+        prog_year_widget = TwoLineCell(program, year_level)
+        self.table.setCellWidget(0, 2, prog_year_widget)
 
-        prog_item = QTableWidgetItem(program)
-        self.table.setItem(0, 3, prog_item)
+        # Time
+        time_widget = TwoLineCell(timestamp, "", top_center=True)
+        time_widget.bottom.hide()
+        self.table.setCellWidget(0, 3, time_widget)
 
-        year_item = QTableWidgetItem(year_level)
-        self.table.setItem(0, 4, year_item)
+        # Status
+        status_wrap = QWidget()
+        status_lay = QHBoxLayout(status_wrap)
+        status_lay.setContentsMargins(0, 0, 0, 0)
+        status_lay.setAlignment(Qt.AlignCenter)
+        status_lay.addWidget(StatusPill(status_text))
+        self.table.setCellWidget(0, 4, status_wrap)
 
-        self.table.setRowHeight(0, 48)
+        self.table.setRowHeight(0, 120)
 
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
@@ -239,68 +252,119 @@ class MainWindow(QMainWindow):
     def load_saved_logs(self):
         try:
             rows = self.api.get_today_logs(limit=200)
-
+            print("\n=== TODAY LOGS ===")
+            for i, row in enumerate(rows, start=1):
+                print(
+                    f"{i}. "
+                    f"id_number={row.get('id_number')}, "
+                    f"full_name={row.get('full_name')}, "
+                    f"program={row.get('program')}, "
+                    f"year_level={row.get('year_level')}, "
+                    f"status={row.get('status')}, "
+                    f"created_at={row.get('created_at')}"
+                )
+            print("==================\n")
+            
             self.table.setRowCount(0)
 
             for row in reversed(rows):
                 created_at = row.get("created_at")
                 timestamp = created_at.strftime("%I:%M:%S %p").lstrip("0") if created_at else ""
 
+                sid = str(row.get("id_number") or "")
+                name = row.get("full_name") or ""
+                program = row.get("program") or ""
+                year_level = str(row.get("year_level") or "")
+                status_text = row.get("status") or "denied"
+
+                # get student again for image
+                student = self.api.get_student_by_id(sid)
+                image_path = self.resolve_student_image_path(student) if student else None
+
                 self.insert_row_top(
                     timestamp,
-                    str(row.get("id_number") or ""),
-                    row.get("full_name") or "",
-                    row.get("program") or "",
-                    str(row.get("year_level") or ""),
+                    sid,
+                    name,
+                    program,
+                    year_level,
+                    status_text,
+                    image_path=image_path,
                 )
 
             print(f"Loaded {len(rows)} logs for today.")
+
         except Exception as e:
             print("Failed to load saved logs:", e)
 
-    def search_typed_id(self):
-        typed_id = self.id_input.text().strip()
+    def resolve_student_image_path(self, db_student):
+        candidates = [
+            db_student.get("student_photos"),
+            db_student.get("photo"),
+            db_student.get("image"),
+            db_student.get("student_photo"),
+        ]
 
-        if not typed_id:
-            print("Please enter an ID number.")
-            return
+        for value in candidates:
+            if not value:
+                continue
 
-        parsed = {
-            "id": typed_id,
-            "name": "",
-            "course": "",
-        }
+            value = str(value).strip()
+            if not value:
+                continue
 
-        self.add_scan_to_table(parsed, raw_payload=f"Manual ID Search: {typed_id}")
-        self.id_input.clear()
+            # If already absolute and exists
+            if os.path.isabs(value) and os.path.exists(value):
+                return value
 
-    def add_scan_to_table(self, parsed: dict, raw_payload: str):
-        now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
+            # If value is like "student_photos/file.png"
+            media_joined = os.path.join(MEDIA_DIR, value)
+            if os.path.exists(media_joined):
+                return media_joined
 
-        qr_data = {
-            "id": (parsed.get("id") or "").strip(),
-            "name": (parsed.get("name") or "").strip(),
-            "course": (parsed.get("course") or "").strip(),
-            "gate": "Main Gate",
-            "qr_payload": raw_payload,
-        }
+            # If value is just filename like "file.png"
+            filename_joined = os.path.join(STUDENT_PHOTOS_DIR, value)
+            if os.path.exists(filename_joined):
+                return filename_joined
 
-        result = self.api.verify_student(qr_data)
+        return None
 
-        status = result.get("status", "denied")
+    def handle_scan_result(self, scan):
+        result = scan["verification"]
+        parsed = scan["parsed"]
+
+        created_at = result.get("created_at")
+        if created_at:
+            try:
+                dt = datetime.fromisoformat(created_at)
+                now = dt.strftime("%I:%M:%S %p").lstrip("0")
+            except Exception:
+                now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
+        else:
+            now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
+
         db_student = result.get("student")
         reason = result.get("reason", "unknown")
+        status = result.get("status", "denied")
 
         if db_student:
-            display_sid = str(db_student.get("id_number") or qr_data["id"] or "-")
+            display_sid = str(db_student.get("id_number") or parsed["id"] or "-")
             display_name = db_student.get("full_name") or "Unknown"
             display_prog = db_student.get("program") or "Unknown"
-            display_year = str(db_student.get("year_level") or "-")
+            display_year = f"{db_student.get('year_level', '-')}" + (
+                "th Year" if str(db_student.get("year_level", "")).isdigit() else ""
+            )
+
+            image_path = self.resolve_student_image_path(db_student)
+            print("Resolved image path:", image_path)
+            status_text = "granted" if status == "granted" else "denied"
+
         else:
             display_name = "Not in Masterlist"
             display_prog = reason.replace("_", " ").title()
-            display_sid = qr_data["id"] or "-"
+            display_sid = parsed["id"] or "-"
             display_year = "-"
+            image_path = None
+            status_text = "denied"
 
         self.insert_row_top(
             now,
@@ -308,7 +372,21 @@ class MainWindow(QMainWindow):
             display_name,
             display_prog,
             display_year,
+            status_text,
+            image_path=image_path,
         )
+
+    def search_typed_id(self):
+        typed_id = self.id_input.text().strip()
+        if not typed_id:
+            print("Please enter an ID number.")
+            return
+
+        result = self.scan_manager.process_manual_id(typed_id)
+        if result:
+            self.handle_scan_result(result)
+
+        self.id_input.clear()
 
     def send_heartbeat(self):
         try:
@@ -317,106 +395,114 @@ class MainWindow(QMainWindow):
             print("Heartbeat failed:", e)
 
     def toggle_camera(self):
-        if self.cap is None:
+        if self.camera.cap is None:
             self.start_camera()
         else:
             self.stop_camera()
 
     def start_camera(self):
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
-        if not self.cap.isOpened():
-            self.preview.setText("Camera not found \nTry camera_index = 0")
-            self.cap.release()
-            self.cap = None
+        ok = self.camera.start()
+        if not ok:
+            self.preview.setText("Camera not found.\nTry another CAMERA_INDEX in config.py")
             return
+
         self.btn_camera.setText("Stop Camera")
         self.timer.start(30)
 
     def stop_camera(self):
         self.timer.stop()
-        if self.cap is not None:
-            self.cap.release()
-            self.cap = None
+        self.camera.stop()
         self.preview.setPixmap(QPixmap())
         self.preview.setText("Camera Preview")
         self.btn_camera.setText("Open Camera")
 
-    def _handle_decoded_payload(self, data: str):
-        if not data: return
-        now_ms = int(datetime.now().timestamp() * 1000)
-
-        if self.dedupe_enabled:
-            if data in self.seen_qr: return
-            if (now_ms - self.last_insert_ms) < self.cooldown_ms: return
-
-        parsed = self.parse_qr_payload(data)
-        if parsed:
-            self.add_scan_to_table(parsed, raw_payload=data)
-            if self.dedupe_enabled:
-                self.seen_qr.add(data)
-                self.last_insert_ms = now_ms
-
-    def run_yolo_and_draw(self, frame):
-        if self.yolo_model is None: return frame
-        try:
-            results = self.yolo_model(frame, conf=0.5, imgsz=640, device=DEVICE, verbose=False)
-            return results[0].plot()
-        except Exception:
-            return frame
-        
-    def draw_qr_boxes(self, frame):
-        try:
-            ok, decoded_info, points, _ = self.qr.detectAndDecodeMulti(frame)
-            if ok and points is not None:
-                for i, quad in enumerate(points):
-                    pts = quad.astype(int).reshape(-1, 2)
-                    for j in range(4):
-                        cv2.line(frame, tuple(pts[j]), tuple(pts[(j + 1) % 4]), (0, 255, 0), 2)
-                    if decoded_info and i < len(decoded_info):
-                        label = (decoded_info[i] if decoded_info[i] else "QR")[:30]
-                        cv2.putText(frame, label, (pts[0][0], max(pts[0][1] - 10, 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        except Exception:
-            pass
-        return frame
-
     def update_frame(self):
-        if self.cap is None: return
-        ret, frame = self.cap.read()
-        if not ret:
+        ret, frame_4k = self.camera.read()
+        if not ret or frame_4k is None:
             self.preview.setText("Failed to read camera frame.")
             return
 
-        decoded_any = False
-        try:
-            ok, decoded_info, points, _ = self.qr.detectAndDecodeMulti(frame)
-            if ok and decoded_info:
-                for s in decoded_info:
-                    if s:
-                        decoded_any = True
-                        self._handle_decoded_payload(s)
-        except Exception: pass
+        self.frame_counter += 1
+        self.latest_source_shape = frame_4k.shape
 
-        if not decoded_any:
-            data, bbox, _ = self.qr.detectAndDecode(frame)
-            if data: self._handle_decoded_payload(data)
+        display_frame = cv2.resize(
+            frame_4k,
+            (DISPLAY_WIDTH, DISPLAY_HEIGHT),
+            interpolation=cv2.INTER_AREA
+        )
 
-        frame = self.run_yolo_and_draw(frame)
-        frame = self.draw_qr_boxes(frame)
-        
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        box_age = time.time() - self.latest_detection_time
+        if self.latest_detections and box_age <= self.detection_box_ttl:
+            display_frame = self.scan_manager.draw_boxes(
+                display_frame,
+                self.latest_detections,
+                frame_4k.shape
+            )
+
+        frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
         qimg = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
-        pix = QPixmap.fromImage(qimg).scaled(self.preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        pix = QPixmap.fromImage(qimg).scaled(
+            self.preview.size(),
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
         self.preview.setPixmap(pix)
 
-    def closeEvent(self, event):
-        try:
-            self.heartbeat_timer.stop()
-        except Exception:
-            pass
+        should_submit = (self.frame_counter % PROCESS_EVERY_N_FRAMES == 0)
 
+        if should_submit and not self.worker_busy:
+            self.worker_busy = True
+
+            self.last_submitted_frame = frame_4k.copy()
+            self.last_display_frame = display_frame.copy()
+
+            self.submit_frame.emit(self.last_submitted_frame)
+
+    def on_worker_result(self, result):
+        self.worker_busy = False
+
+        self.latest_detections = result.get("detections", [])
+        self.latest_detection_time = time.time()
+
+        # 🔥 FORCE SYNC: draw boxes on stored frame
+        if self.last_display_frame is not None and self.last_submitted_frame is not None:
+            synced_frame = self.scan_manager.draw_boxes(
+                self.last_display_frame.copy(),
+                self.latest_detections,
+                self.last_submitted_frame.shape
+            )
+
+            frame_rgb = cv2.cvtColor(synced_frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame_rgb.shape
+            qimg = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
+
+            pix = QPixmap.fromImage(qimg).scaled(
+                self.preview.size(),
+                Qt.KeepAspectRatio,
+                Qt.FastTransformation
+            )
+
+            self.preview.setPixmap(pix)
+
+        print(f"[UI] Worker returned {len(self.latest_detections)} detections")
+
+        scans = result.get("scans", [])
+        print(f"[UI] Worker returned {len(scans)} decoded scans")
+
+        for raw_scan in scans:
+            verified = self.scan_manager.verify_scan(raw_scan)
+            if verified:
+                print(f"[UI] Adding scan result for ID: {verified['parsed'].get('id')}")
+                self.handle_scan_result(verified)
+
+    def on_worker_error(self, message):
+        self.worker_busy = False
+        print("Worker error:", message)
+
+    def closeEvent(self, event):
         try:
             self.heartbeat_timer.stop()
         except Exception:
@@ -442,6 +528,12 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
+        try:
+            self.worker_thread.quit()
+            self.worker_thread.wait()
+        except Exception:
+            pass
+
         super().closeEvent(event)
 
     def apply_styles(self):
@@ -456,13 +548,79 @@ class MainWindow(QMainWindow):
         QPushButton#primaryBtn { background: #111827; color: white; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
         QPushButton#primaryBtn:hover { background: #0b1220; }
         QPushButton#primaryBtn:pressed { background: #000000; }
+        QPushButton#secondaryBtn { background: #e5e7eb; color: #111827; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
+        QPushButton#secondaryBtn:hover { background: #d1d5db; }
+        QLineEdit#idInput { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 12px; }
         QLabel#footnote { font-size: 10px; color: #9ca3af; }
-        QFrame#tableWrap { background: #ffffff; border: 1px solid #b9c0cb; border-radius: 12px; }
-        QTableWidget#table { background: transparent; border: none; outline: none; }
-        QHeaderView::section { background: transparent; border: none; border-bottom: 1px solid #b9c0cb; padding: 10px 12px; font-size: 12px; font-weight: 700; color: #111827; }
-        QTableWidget::item { border: none; border-bottom: 1px solid #b9c0cb; padding: 10px 12px; font-size: 12px; color: #111827; }
-        QWidget#twoLineCell QLabel#cellTop { font-size: 12px; color: #111827; }
-        QWidget#twoLineCell QLabel#cellBottom { font-size: 11px; color: #6b7280; }
-        QLabel#pillGranted { background: #0b1020; color: white; border: none; border-radius: 14px; padding: 4px 14px; font-size: 11px; font-weight: 700; }
-        QLabel#pillDenied { background: #e11d48; color: white; border: none; border-radius: 14px; padding: 4px 14px; font-size: 11px; font-weight: 700; }
+        QFrame#tableWrap {
+            background: #ffffff;
+            border: 1px solid #cfd5df;
+            border-radius: 12px;
+        }
+
+        QTableWidget#table {
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+
+        QHeaderView::section {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #d7dbe2;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #3f3f46;
+        }
+
+        QTableWidget::item {
+            border: none;
+            border-bottom: 1px solid #eceff3;
+            padding: 0px;
+        }
+
+        QWidget#twoLineCell QLabel#cellTop {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        QWidget#twoLineCell QLabel#cellBottom {
+            font-size: 13px;
+            color: #111111;
+            margin-top: -1px;
+        }
+
+        QWidget#studentPhotoCell {
+            background: transparent;
+        }
+
+        QLabel#studentPhoto {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            color: #6b7280;
+            font-size: 8px;
+        }
+
+        QLabel#pillGranted {
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        QLabel#pillDenied {
+            background: #e11d48;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
         """)

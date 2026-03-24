@@ -19,6 +19,12 @@ export default function Dashboard() {
   const [recentScans, setRecentScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getPhotoSrc = (photo) => {
+    if (!photo) return "/images/default-avatar.png";
+    if (photo.startsWith("http")) return photo;
+    return `${API_BASE}${photo}`;
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -143,11 +149,11 @@ export default function Dashboard() {
                 overflowX: "auto",
                 border: "3px solid #ECECF0",
                 borderRadius: "10px",
-                overflow: "hidden",
+                overflowY: "auto",
                 minHeight: "425px",
                 height: "100%",
               }}
-              >
+            >
               <table
                 style={{
                   width: "100%", // 👈 not 100% so it can visually center
@@ -159,8 +165,20 @@ export default function Dashboard() {
                   <tr>
                     <th
                       style={{
+                        width: "10%",
+                        padding: "10px",
+                        color: "gray",
+                        borderBottom: "2px solid #ECECF0",
+                        textAlign: "center"
+                      }}
+                    >
+                      Photo
+                    </th>
+                    <th
+                      style={{
                         width: "18%",
                         padding: "10px",
+                        textAlign: "center",
                         color: "gray",
                         borderBottom: "2px solid #ECECF0",
                       }}
@@ -170,6 +188,7 @@ export default function Dashboard() {
                     <th
                       style={{
                         width: "16%",
+                        paddingRight: "8%",
                         textAlign: "center",
                         padding: "10px",
                         color: "gray",
@@ -180,7 +199,7 @@ export default function Dashboard() {
                     </th>
                     <th
                       style={{
-                        width: "20%",
+                        width: "19%",
                         textAlign: "center",
                         padding: "10px",
                         color: "gray",
@@ -228,7 +247,7 @@ export default function Dashboard() {
                   {loading ? (
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan="7"
                         style={{ padding: "10px", color: "gray" }}
                       >
                         Loading...
@@ -237,8 +256,14 @@ export default function Dashboard() {
                   ) : recentScans.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="6"
-                        style={{ padding: "10px", color: "gray", textAlign: "center", verticalAlign: "middle", height: "37vh",}}
+                        colSpan="7"
+                        style={{
+                          padding: "10px",
+                          color: "gray",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          height: "37vh",
+                        }}
                       >
                         No scan records found.
                       </td>
@@ -249,7 +274,33 @@ export default function Dashboard() {
                         <td
                           style={{
                             textAlign: "left",
-                            paddingLeft: "6%",
+                            paddingLeft: "3%",
+                            color: "gray",
+                            borderBottom: "2px solid #ECECF0",
+                            paddingTop: "8px",
+                          }}
+                        >
+                          <img
+                            src={getPhotoSrc(scan.photo)}
+                            alt={scan.full_name || "Student"}
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                              border: "1px solid #E4E7EC",
+                              background: "#F9FAFB",
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "/images/default-avatar.png";
+                            }}
+                          />
+                        </td>
+                        <td
+                          style={{
+                            textAlign: "left",
+                            paddingLeft: "6.3%",
                             color: "gray",
                             borderBottom: "2px solid #ECECF0",
                           }}
@@ -259,7 +310,7 @@ export default function Dashboard() {
                         <td
                           style={{
                             textAlign: "left",
-                            paddingLeft: "5%",
+                            paddingLeft: "4.5%",
                             color: "gray",
                             borderBottom: "2px solid #ECECF0",
                           }}
@@ -279,7 +330,7 @@ export default function Dashboard() {
                         <td
                           style={{
                             textAlign: "left",
-                            paddingLeft: "5.5%",
+                            paddingLeft: "6%",
                             color: "gray",
                             borderBottom: "2px solid #ECECF0",
                           }}
@@ -289,7 +340,7 @@ export default function Dashboard() {
                         <td
                           style={{
                             textAlign: "left",
-                            paddingLeft: "4%",
+                            paddingLeft: "4.5%",
                             color: "gray",
                             borderBottom: "2px solid #ECECF0",
                           }}
@@ -298,15 +349,25 @@ export default function Dashboard() {
                         </td>
                         <td
                           style={{
-                            textAlign: "left",
-                            margin: "0 auto",
-                            paddingLeft: "8 %",
-                            padding: "10px",
-                            color: "gray",
+                            textAlign: "center",
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.validity}
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "12px",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "white",
+                              backgroundColor:
+                                scan.validity === "VERIFIED"
+                                  ? "#22c55e"
+                                  : "#ef4444",
+                            }}
+                          >
+                            {scan.validity}
+                          </span>
                         </td>
                       </tr>
                     ))
