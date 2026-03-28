@@ -20,12 +20,14 @@ body {
   gap: 2rem; /* This creates a relative gap between header and main */
 }
 
+
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Keeps everything centered in the header */
+  align-items: center;
   text-align: center;
   gap: 15px;
+
 }
 
 .logo {
@@ -54,6 +56,7 @@ body {
   gap: 10px;
   flex-wrap: nowrap;
   color: black;
+  /*top: 150px;*/
 
   box-sizing: border-box;
   justify-self: center; /* ✅ centers within grid parent */

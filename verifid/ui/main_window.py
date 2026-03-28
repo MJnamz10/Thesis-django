@@ -343,28 +343,28 @@ class MainWindow(QMainWindow):
             now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
 
         db_student = result.get("student")
-        reason = result.get("reason", "unknown")
         status = result.get("status", "denied")
 
         if db_student:
             display_sid = str(db_student.get("id_number") or parsed["id"] or "-")
             display_name = db_student.get("full_name") or "Unknown"
             display_prog = db_student.get("program") or "Unknown"
-            display_year = f"{db_student.get('year_level', '-')}" + (
-                "th Year" if str(db_student.get("year_level", "")).isdigit() else ""
-            )
+            
+            # Formatting year level
+            y_lvl = db_student.get('year_level', '-')
+            display_year = f"{y_lvl}" + ("th Year" if str(y_lvl).isdigit() else "")
 
             image_path = self.resolve_student_image_path(db_student)
-            print("Resolved image path:", image_path)
             status_text = "granted" if status == "granted" else "denied"
-
         else:
-            display_name = "Not in Masterlist"
-            display_prog = reason.replace("_", " ").title()
-            display_sid = parsed["id"] or "-"
-            display_year = "-"
-            image_path = None
-            status_text = "denied"
+            # --- Logic for Student Not in Masterlist ---
+            display_name = "N/A"
+            display_sid = parsed["id"] or "N/A"
+            display_prog = "N/A"
+            display_year = "N/A"
+            image_path = None        # No image will be displayed
+            status_text = "invalid"  # This will show the "Unknown" pill
+            # --------------------------------------------
 
         self.insert_row_top(
             now,
@@ -556,6 +556,8 @@ class MainWindow(QMainWindow):
             background: #ffffff;
             border: 1px solid #cfd5df;
             border-radius: 12px;
+            /* Prevent horizontal overflow */
+            overflow: hidden; 
         }
 
         QTableWidget#table {
@@ -613,9 +615,19 @@ class MainWindow(QMainWindow):
             font-size: 10px;
             font-weight: 700;
         }
+        QLabel#pillUnknown {
+            background: #6b7280; /* Gray color for unknown */
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
 
         QLabel#pillDenied {
             background: #e11d48;
+            width: 100px;
             color: white;
             border: none;
             border-radius: 12px;
@@ -624,3 +636,4 @@ class MainWindow(QMainWindow):
             font-weight: 700;
         }
         """)
+        

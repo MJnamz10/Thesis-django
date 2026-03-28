@@ -282,9 +282,12 @@ def all_logs(request):
 
         photo_url = get_student_photo_url(student)
 
+        local_created_at = timezone.localtime(log.created_at)
+
         data.append({
             "id": log.id,
             "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+            "created_at": local_created_at.isoformat(),
             "id_number": log.id_number or "",
             "full_name": log.full_name or "",
             "program": log.program or "",

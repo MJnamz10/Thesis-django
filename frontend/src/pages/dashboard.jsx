@@ -19,6 +19,18 @@ export default function Dashboard() {
   const [recentScans, setRecentScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const displayValue = (val) => {
+    if (
+      val === null ||
+      val === undefined ||
+      val === "" ||
+      val === "Not in Masterlist"
+    ) {
+      return "N/A";
+    }
+    return val;
+  };
+
   const getPhotoSrc = (photo) => {
     if (!photo) return "/images/default-avatar.png";
     if (photo.startsWith("http")) return photo;
@@ -26,33 +38,44 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(true); // first load only
+
+    const interval = setInterval(() => {
+      fetchDashboardData(false); // silent refresh
+    }, 2000); // or 3000 / 5000
+
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
 
       const response = await fetch(`${API_BASE}/api/verifid/dashboard-data`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
-      }
+      if (!response.ok) throw new Error("Failed to fetch dashboard data");
 
       const data = await response.json();
 
-      setStats({
+      const newStats = {
         totalStudents: data.stats?.totalStudents || 0,
         grantedToday: data.stats?.grantedToday || 0,
         deniedToday: data.stats?.deniedToday || 0,
         trafficToday: data.stats?.trafficToday || 0,
-      });
+      };
 
-      setRecentScans(data.recentScans || []);
+      setStats((prev) =>
+        JSON.stringify(prev) === JSON.stringify(newStats) ? prev : newStats,
+      );
+
+      setRecentScans((prev) =>
+        JSON.stringify(prev) === JSON.stringify(data.recentScans || [])
+          ? prev
+          : data.recentScans || [],
+      );
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   };
 
@@ -169,7 +192,7 @@ export default function Dashboard() {
                         padding: "10px",
                         color: "gray",
                         borderBottom: "2px solid #ECECF0",
-                        textAlign: "center"
+                        textAlign: "center",
                       }}
                     >
                       Photo
@@ -278,24 +301,57 @@ export default function Dashboard() {
                             color: "gray",
                             borderBottom: "2px solid #ECECF0",
                             paddingTop: "8px",
+                            paddingBottom: "8px",
                           }}
                         >
-                          <img
-                            src={getPhotoSrc(scan.photo)}
-                            alt={scan.full_name || "Student"}
-                            style={{
-                              width: "100px",
-                              height: "100px",
-                              objectFit: "cover",
-                              borderRadius: "8px",
-                              border: "1px solid #E4E7EC",
-                              background: "#F9FAFB",
-                            }}
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                "/images/default-avatar.png";
-                            }}
-                          />
+                          {scan.id_number === "Not in Masterlist" ||
+                          !scan.full_name ? (
+                            /* Placeholder Box */
+                            <div
+                              style={{
+                                width: "90px",
+                                height: "90px",
+                                borderRadius: "8px",
+                                border: "1px dashed #ef4444",
+                                background: "#fef2f2",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                textAlign: "center",
+                                padding: "5px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: "11px",
+                                  fontWeight: "600",
+                                  color: "#ef4444",
+                                  textTransform: "uppercase",
+                                  lineHeight: "1.2",
+                                }}
+                              >
+                                No Student <br /> Record
+                              </span>
+                            </div>
+                          ) : (
+                            /* Actual Student Photo */
+                            <img
+                              src={getPhotoSrc(scan.photo)}
+                              alt={scan.full_name || "Student"}
+                              style={{
+                                width: "100px",
+                                height: "100px",
+                                objectFit: "cover",
+                                borderRadius: "8px",
+                                border: "1px solid #E4E7EC",
+                                background: "#F9FAFB",
+                              }}
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "/images/default-avatar.png";
+                              }}
+                            />
+                          )}
                         </td>
                         <td
                           style={{
@@ -305,7 +361,7 @@ export default function Dashboard() {
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.timestamp}
+                          {displayValue(scan.timestamp)}
                         </td>
                         <td
                           style={{
@@ -315,7 +371,7 @@ export default function Dashboard() {
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.id_number}
+                          {displayValue(scan.id_number)}
                         </td>
                         <td
                           style={{
@@ -325,7 +381,7 @@ export default function Dashboard() {
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.full_name}
+                          {displayValue(scan.full_name)}
                         </td>
                         <td
                           style={{
@@ -335,7 +391,7 @@ export default function Dashboard() {
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.program}
+                          {displayValue(scan.program)}
                         </td>
                         <td
                           style={{
@@ -345,7 +401,7 @@ export default function Dashboard() {
                             borderBottom: "2px solid #ECECF0",
                           }}
                         >
-                          {scan.year_level}
+                          {displayValue(scan.year_level)}
                         </td>
                         <td
                           style={{
@@ -361,12 +417,21 @@ export default function Dashboard() {
                               fontWeight: "600",
                               color: "white",
                               backgroundColor:
-                                scan.validity === "VERIFIED"
+                                // Logic: Green only if verified AND we actually have a name/valid record
+                                scan.validity === "VERIFIED" &&
+                                scan.full_name &&
+                                scan.id_number !== "Not in Masterlist"
                                   ? "#22c55e"
                                   : "#ef4444",
                             }}
                           >
-                            {scan.validity}
+                            {/* Logic: If name is missing OR ID is "Not in Masterlist", 
+       it's an invalid attempt. Otherwise, show the API status.
+    */}
+                            {!scan.full_name ||
+                            scan.id_number === "Not in Masterlist"
+                              ? "INVALID"
+                              : scan.validity || "UNKNOWN"}
                           </span>
                         </td>
                       </tr>

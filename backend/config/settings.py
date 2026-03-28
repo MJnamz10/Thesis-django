@@ -80,3 +80,5 @@ CORS_ALLOWED_ORIGINS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GATE_API_KEY = "USTP_Gate_Scanner_Key_9x8B2vL5y"
+TIME_ZONE = 'Asia/Manila'
+USE_TZ = True
