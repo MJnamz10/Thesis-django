@@ -148,7 +148,7 @@ export default function Dashboard() {
 
           <div className="dash-item">
             <p className="title1">Today's Traffic</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: "orange" }}>
+            <p style={{ fontSize: 28, fontWeight: 700, color: "purple" }}>
               {loading ? "..." : stats.trafficToday}
             </p>
             <img src="/images/Dashboard (3).png" className="icons" alt="" />
@@ -422,7 +422,7 @@ export default function Dashboard() {
                                 scan.full_name &&
                                 scan.id_number !== "Not in Masterlist"
                                   ? "#22c55e"
-                                  : "#ef4444",
+                                  : "#ff0000",
                             }}
                           >
                             {/* Logic: If name is missing OR ID is "Not in Masterlist", 

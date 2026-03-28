@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
-import { UserPen, Download, Search } from "lucide-react";
 // Added Calendar, Download, and Search icons from lucide-react
-import { UserPen, Calendar, Download, Search } from 'lucide-react';
+import { UserPen, Calendar, Download, Search } from "lucide-react";
 
 export default function AccessLogs() {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // State to track which filter is currently active
-  const [activeFilter, setActiveFilter] = useState("All");
 
   const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
@@ -21,7 +17,6 @@ export default function AccessLogs() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  
 
   const getPhotoSrc = (photo) => {
     if (!photo) return "/images/default-avatar.png";
@@ -85,7 +80,7 @@ export default function AccessLogs() {
       const data = await response.json();
 
       setLogs((prev) =>
-        JSON.stringify(prev) === JSON.stringify(data) ? prev : data
+        JSON.stringify(prev) === JSON.stringify(data) ? prev : data,
       );
     } catch (error) {
       console.error("Error fetching logs:", error);
@@ -111,15 +106,18 @@ export default function AccessLogs() {
       // Search filter
       const studentName = (log.full_name || "").toLowerCase();
       const studentId = String(log.id_number || "").toLowerCase();
-      const studentProgram = String(log.program || log.year_level).toLowerCase();
-      const programYear = `${log.program || ""} ${log.year_level || ""}`.toLowerCase();
+      const studentProgram = String(
+        log.program || log.year_level,
+      ).toLowerCase();
+      const programYear =
+        `${log.program || ""} ${log.year_level || ""}`.toLowerCase();
       const search = searchTerm.trim().toLowerCase();
 
       const matchesSearch =
         !search ||
         studentName.includes(search) ||
         studentId.includes(search) ||
-        studentProgram.includes(search)||
+        studentProgram.includes(search) ||
         programYear.includes(search);
 
       // Date filter
@@ -170,7 +168,9 @@ export default function AccessLogs() {
         timestamp,
         isMissing ? "N/A" : log.id_number || "",
         isMissing ? "N/A" : log.full_name || "",
-        isMissing ? "N/A" : `${log.program || ""} ${log.year_level || ""}`.trim(),
+        isMissing
+          ? "N/A"
+          : `${log.program || ""} ${log.year_level || ""}`.trim(),
         isMissing ? "INVALID" : log.status || "",
       ];
     });
@@ -178,7 +178,7 @@ export default function AccessLogs() {
     const csvContent = [
       headers.join(","),
       ...rows.map((row) =>
-        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")
+        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
       ),
     ].join("\n");
 
@@ -545,27 +545,21 @@ export default function AccessLogs() {
                           borderBottom: "2px solid #ECECF0",
                         }}
                       >
-                        {isMissing ? (
-                          <span
-                            style={{
-                              color: "gray",
-                              fontWeight: "600",
-                              fontSize: "14px",
-                            }}
-                          >
-                            INVALID
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              color:
-                                log.status === "VERIFIED" ? "green" : "red",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {log.status}
-                          </span>
-                        )}
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            color: "white",
+                            backgroundColor:
+                              !isMissing && log.status === "VERIFIED"
+                                ? "#22c55e" // green
+                                : "#ef4444", // red
+                          }}
+                        >
+                          {isMissing ? "INVALID" : log.status || "UNKNOWN"}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -574,7 +568,6 @@ export default function AccessLogs() {
             </tbody>
           </table>
         </div>
-        
       </div>
     </div>
   );

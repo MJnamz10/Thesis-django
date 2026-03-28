@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
-import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye, Search} from "lucide-react";
-import AddStudentModal from "./AddStudentModal"; 
 import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye, Search} from "lucide-react";
 import AddStudentModal from "./AddStudentModal"; 
 

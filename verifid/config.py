@@ -30,7 +30,7 @@ DEVICE = "cpu"
 # -----------------------------
 # Camera Settings
 # -----------------------------
-CAMERA_INDEX = 0
+CAMERA_INDEX = 2
 CAPTURE_WIDTH = 3840
 CAPTURE_HEIGHT = 2160
 
