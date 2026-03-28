@@ -71,3 +71,16 @@ def reset_password_confirm(request):
             {"error": "This reset link is invalid or has expired."}, 
             status=400
         )
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_admin_password(request):
+    password = request.data.get('password')
+    
+    # Grab the main superuser account (your admin account)
+    admin_user = User.objects.filter(is_superuser=True).first()
+    
+    if admin_user and admin_user.check_password(password):
+        return Response({"message": "Password verified."})
+    else:
+        return Response({"error": "Incorrect password."}, status=403)

@@ -11,4 +11,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password-confirm/', views.reset_password_confirm, name='reset_password_confirm'),
+    path('verify-admin-password/', views.verify_admin_password, name='verify_admin_password'),
 ]
