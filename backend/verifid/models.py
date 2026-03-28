@@ -26,3 +26,12 @@ class ScannerStatus(models.Model):
 
     def __str__(self):
         return f"{self.scanner_name} - {'online' if self.is_online else 'offline'}"
+
+class QRRawScan(models.Model):
+    id_number = models.CharField(max_length=50, null=True, blank=True)
+    full_name = models.CharField(max_length=150, null=True, blank=True)
+    program = models.CharField(max_length=100, null=True, blank=True)
+    scanned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.id_number} - {self.full_name}"

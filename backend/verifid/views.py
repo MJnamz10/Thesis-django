@@ -6,7 +6,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from api.models import Student
-from .models import ScanLog, ScannerStatus
+from .models import ScanLog, ScannerStatus,  QRRawScan
 
 EXPECTED_API_KEY = getattr(settings, "GATE_API_KEY", "USTP_Gate_Scanner_Key_9x8B2vL5y")
 
@@ -29,6 +29,12 @@ def verify_student(request):
     scanned_course = request.data.get("course", "")
     gate = request.data.get("gate", "Main Gate")
     qr_payload = request.data.get("qr_payload", "")
+
+    QRRawScan.objects.create(
+        id_number=scanned_id or "",
+        full_name=scanned_name or "",
+        program=scanned_course or "",
+    )
 
     if not scanned_id:
         return Response(
