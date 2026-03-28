@@ -11,12 +11,14 @@ export default function AddStudentModal({
   const [selectedFile, setSelectedFile] = useState(null);
   const dialogRef = useRef(null);
 
-  // 1. State to handle form inputs
+  // 1. UPDATED: Added gender and age to initial state
   const [formData, setFormData] = useState({
     id_number: editData?.id_number || "",
     full_name: editData?.full_name || "",
     program: editData?.program || "",
     year_level: editData?.year_level || "",
+    gender: editData?.gender || "", 
+    age: editData?.age || "",       
     validity_status: editData?.validity_status || "NOT_VERIFIED",
   });
 
@@ -26,7 +28,7 @@ export default function AddStudentModal({
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file)); // Create a local URL for the preview image
+      setPreviewUrl(URL.createObjectURL(file)); 
     }
   };
 
@@ -38,13 +40,15 @@ export default function AddStudentModal({
     }));
   };
 
-  // 2. Function to Save Data to Django
+  // 2. UPDATED: Append the new fields to the data being sent to Django
   const handleSave = async () => {
     const data = new FormData();
     data.append("id_number", formData.id_number);
     data.append("full_name", formData.full_name);
     data.append("program", formData.program);
     data.append("year_level", formData.year_level);
+    data.append("gender", formData.gender); // NEW
+    data.append("age", formData.age);       // NEW
     data.append("validity_status", formData.validity_status);
 
     if (selectedFile) {
@@ -52,8 +56,6 @@ export default function AddStudentModal({
     }
 
     try {
-      // 1. Determine the URL and Method
-      // If editData exists, we target the specific student ID
       const url = editData
         ? `http://127.0.0.1:8000/api/students/${editData.id}/`
         : "http://127.0.0.1:8000/api/students/";
@@ -83,7 +85,6 @@ export default function AddStudentModal({
     }
   };
 
-  // Logic for ESC key and background scroll (kept from your original)
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e) => {
@@ -105,7 +106,6 @@ export default function AddStudentModal({
   if (!open) return null;
 
   const onOverlayMouseDown = (e) => {
-    // close only if clicking the overlay, not inside the modal
     if (e.target === e.currentTarget) onClose();
   };
 
@@ -126,11 +126,9 @@ export default function AddStudentModal({
           </button>
         </div>
 
-        {/* Scrollable content */}
         <div className="modalBody">
           <label className="label">Student Photo</label>
 
-          {/* Hidden File Input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -141,9 +139,7 @@ export default function AddStudentModal({
 
           <div
             className="uploadBox"
-            onClick={() =>
-              fileInputRef.current.click()
-            } /* Triggers input click */
+            onClick={() => fileInputRef.current.click()}
             style={{ cursor: "pointer", overflow: "hidden" }}
           >
             {previewUrl ? (
@@ -216,6 +212,40 @@ export default function AddStudentModal({
             </select>
           </div>
 
+          {/* 3. NEW: Gender Field */}
+          <div className="field2">
+            <label className="label">
+              Gender <span className="req">*</span>
+            </label>
+            <select 
+              name="gender" 
+              value={formData.gender} 
+              className="input" 
+              onChange={handleChange}
+            >
+              <option value="">Select gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label">
+              Age <span className="req">*</span>
+            </label>
+            <input
+              type="number"
+              name="age"
+              value={formData.age}
+              className="input"
+              placeholder="e.g., 20"
+              min="10"
+              max="100"
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="field2">
             <label className="label">Validity Status</label>
             <select
@@ -230,7 +260,6 @@ export default function AddStudentModal({
             </select>
           </div>
 
-          {/* Add more fields to test scrolling */}
           <div style={{ height: 24 }} />
         </div>
 

@@ -1,0 +1,170 @@
+.login-wrapper {
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #f5f8fa; /* Soft blue-gray background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: "Arimo", sans-serif;
+}
+
+.login-header-text {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-header-text h2 {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 400;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.login-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.login-icon-box {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 24px;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.login-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 32px 0;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+}
+
+.input-icon-right {
+  position: absolute;
+  right: 14px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 12px 12px 42px; /* Extra padding on left for the icon */
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  border-color: #1e293b;
+}
+
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.forgot-password {
+  color: #ea580c; /* Orange color from your design */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.sign-in-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #1e293b; /* Dark navy */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sign-in-btn:hover {
+  background-color: #0f172a;
+}
+
+.login-disclaimer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.login-footer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
