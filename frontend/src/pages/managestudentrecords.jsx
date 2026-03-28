@@ -499,138 +499,60 @@ export default function ManageStudentRecords() {
               </div>
             </div>
 
-            <div
-              style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-            />
+        <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
-            {/* --- UPDATED: Student Info Grid with Gender and Age --- */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "32px",
-                marginBottom: "20px",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <GraduationCap size={20} />
+            {/* --- UPDATED: Perfect 2x2 Grid for Student Info --- */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', /* This creates two equal-width columns */
+              gap: '24px 16px',               /* 24px vertical gap, 16px horizontal gap */
+              marginBottom: '20px', 
+              width: '100%', 
+              padding: '0 16px', 
+              boxSizing: 'border-box' 
+            }}>
+                {/* 1. Program (Top Left) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><GraduationCap size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Program</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.program}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Program
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.program}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <CalendarDays size={20} />
+                {/* 2. Year Level (Top Right) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><CalendarDays size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Year Level</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>
+                          {{ "1": "1st Year", "2": "2nd Year", "3": "3rd Year", "4": "4th Year", "5": "5th Year" }[selectedDetailStudent.year_level] || selectedDetailStudent.year_level}
+                        </span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Year Level
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {{
-                      1: "1st Year",
-                      2: "2nd Year",
-                      3: "3rd Year",
-                      4: "4th Year",
-                      5: "5th Year",
-                    }[selectedDetailStudent.year_level] ||
-                      selectedDetailStudent.year_level}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <Users size={20} />
+                {/* 3. Gender (Bottom Left) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><Users size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Gender</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.gender || 'N/A'}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Gender
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.gender || "N/A"}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <Hash size={20} />
+                {/* 4. Age (Bottom Right) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><Hash size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Age</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.age || 'N/A'}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>Age</span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.age || "N/A"}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div
-              style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-            />
+            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
+      
             <div
               style={{
                 display: "flex",
