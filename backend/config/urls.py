@@ -8,7 +8,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')), # Or whatever your app is named
 
-    path('', include('verifid.urls'))
+    path('', include('verifid.urls')),
+    path('api/qr/', include('qr_generator.urls')),
 ] 
 
 # This is the "bridge" that lets your browser see the files
