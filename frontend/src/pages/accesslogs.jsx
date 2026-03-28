@@ -2,10 +2,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
 import { UserPen, Download, Search } from "lucide-react";
+// Added Calendar, Download, and Search icons from lucide-react
+import { UserPen, Calendar, Download, Search } from 'lucide-react';
 
 export default function AccessLogs() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // State to track which filter is currently active
+  const [activeFilter, setActiveFilter] = useState("All");
 
   const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
@@ -227,6 +232,7 @@ export default function AccessLogs() {
         </div>
       </div>
 
+      {/* Main Content Area */}
       <div className="container2">
         <div
           style={{
@@ -568,6 +574,7 @@ export default function AccessLogs() {
             </tbody>
           </table>
         </div>
+        
       </div>
     </div>
   );

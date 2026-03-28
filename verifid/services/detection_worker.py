@@ -57,9 +57,17 @@ class DetectionWorker(QObject):
         if not payload:
             return None
 
+        import re
+
+        # Normalize whitespace and remove odd characters like backticks
         raw = payload.strip().replace("\r\n", "\n").replace("\r", "\n")
+        normalized = " ".join(raw.replace("`", " ").split())
+
         data = {"name": "", "id": "", "course": ""}
 
+        # -----------------------------
+        # 1) Try labeled format first
+        # -----------------------------
         lines = [ln.strip() for ln in raw.split("\n") if ln.strip()]
 
         def pick_after_colon(s: str):
@@ -74,10 +82,30 @@ class DetectionWorker(QObject):
             elif low.startswith("course") or low.startswith("program"):
                 data["course"] = pick_after_colon(ln)
 
-        if not data["id"]:
+        if data["id"]:
+            print(f"[WORKER] Parsed labeled QR payload: {data}")
+            return data
+
+        # -----------------------------
+        # 2) Fallback: unlabeled format
+        # Example:
+        # APRIL ROSE V. ESPIRITU 2022301128 BSCpE
+        # -----------------------------
+        id_match = re.search(r"\b\d{8,12}\b", normalized)
+        if not id_match:
             print("[WORKER] Decoded text found but no ID parsed")
             return None
 
+        student_id = id_match.group(0)
+
+        before_id = normalized[:id_match.start()].strip()
+        after_id = normalized[id_match.end():].strip()
+
+        data["id"] = student_id
+        data["name"] = before_id
+        data["course"] = after_id
+
+        print(f"[WORKER] Parsed unlabeled QR payload: {data}")
         return data
 
     @Slot(object)

@@ -52,7 +52,7 @@ YOLO_IMGSZ = 416
 # Processing Control
 # -----------------------------
 PROCESS_EVERY_N_FRAMES = 6
-SCAN_COOLDOWN_MS = 1200
+SCAN_COOLDOWN_MS = 5000
 
 # -----------------------------
 # Crop / Quality Gate
@@ -63,7 +63,7 @@ MIN_QR_HEIGHT = 60
 MIN_SHARPNESS = 20.0
 
 # Only decode the top-N detections
-MAX_DETECTIONS_TO_DECODE = 1
+MAX_DETECTIONS_TO_DECODE = 4
 
 # -----------------------------
 # Preprocessing
