@@ -2,22 +2,21 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
-import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye, Search} from "lucide-react";
+// Added 'Users' and 'Hash' icons for Gender and Age!
+import { UserPen, Plus, Download, GraduationCap, CalendarDays, UserCircle2, Eye, Search, Users, Hash } from "lucide-react";
 import AddStudentModal from "./AddStudentModal"; 
 
 export default function ManageStudentRecords() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1. ALL STATE HOOKS MUST BE AT THE TOP LEVEL
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDetailStudent, setSelectedDetailStudent] = useState(null); // ✅ Moved up here safely!
+  const [selectedDetailStudent, setSelectedDetailStudent] = useState(null); 
 
   const { students, loading, refresh } = useStudents();
 
-  // Helper function to handle image paths securely
   const getFullImageUrl = (path) => {
     if (!path) return "/images/default-avatar.png"; 
     return path.startsWith('http') ? path : `http://127.0.0.1:8000${path}`;
@@ -60,8 +59,7 @@ export default function ManageStudentRecords() {
         </div>
       </div>
       
-<div className="container2">
-        {/* --- Top Header Row --- */}
+      <div className="container2">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
           <div>
             <div style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#0a0a0a' }}>Manage Student Records</div>
@@ -78,7 +76,6 @@ export default function ManageStudentRecords() {
           </div>
         </div>
 
-        {/* --- Search Bar Row --- */}
         <div style={{ display: 'flex', marginBottom: '24px' }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: '100%' }}>
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'gray' }} />
@@ -101,6 +98,8 @@ export default function ManageStudentRecords() {
                 <th>Name</th>
                 <th>Program</th>
                 <th>Year</th>
+                <th>Gender</th> 
+                <th>Age</th>
                 <th>Validity</th>
                 <th>QR Code</th>
                 <th>Actions</th>
@@ -124,37 +123,38 @@ export default function ManageStudentRecords() {
                     <td>{student.full_name}</td>
                     <td>{student.program}</td>
                     <td>{student.year_level}</td>
+                    <td>{student.gender || <span style={{color: 'gray'}}>N/A</span>}</td>
+                    <td>{student.age || <span style={{color: 'gray'}}>N/A</span>}</td>
                     <td>{student.validity_status}</td>
                     
-                    {/* ✅ UPDATED CLICKABLE QR CODE TD */}
-<td>
-  {student.qr_code ? (
-    <img 
-      src={getFullImageUrl(student.qr_code)} 
-      width="40" 
-      alt="Student QR" 
-    />
-  ) : (
-    <span style={{ fontSize: "12px", color: "gray" }}>No QR</span>
-  )}
-</td>
+                    <td>
+                      {student.qr_code ? (
+                        <img 
+                          src={getFullImageUrl(student.qr_code)} 
+                          width="40" 
+                          alt="Student QR" 
+                        />
+                      ) : (
+                        <span style={{ fontSize: "12px", color: "gray" }}>No QR</span>
+                      )}
+                    </td>
 
-  <td>
-  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-    <Eye 
-      size={18} 
-      style={{ cursor: "pointer", color: "#475467" }} 
-      title="View Details"
-      onClick={() => setSelectedDetailStudent(student)} 
-    />
-    <UserPen 
-      size={18} 
-      style={{ cursor: "pointer", color: "#475467" }} 
-      title="Edit Record"
-      onClick={() => handleEditClick(student)} 
-    />
-  </div>
-</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <Eye 
+                          size={18} 
+                          style={{ cursor: "pointer", color: "#475467" }} 
+                          title="View Details"
+                          onClick={() => setSelectedDetailStudent(student)} 
+                        />
+                        <UserPen 
+                          size={18} 
+                          style={{ cursor: "pointer", color: "#475467" }} 
+                          title="Edit Record"
+                          onClick={() => handleEditClick(student)} 
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -177,7 +177,6 @@ export default function ManageStudentRecords() {
         editData={selectedStudent}
       />
 
-      {/* ✅ ADDED THE COMPREHENSIVE MODAL OVERLAY */}
       {selectedDetailStudent && (
         <div 
           onClick={() => setSelectedDetailStudent(null)} 
@@ -222,17 +221,19 @@ export default function ManageStudentRecords() {
                 </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' ,}} />
+            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '80px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* --- UPDATED: Student Info Grid with Gender and Age --- */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '32px', marginBottom: '20px', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '120px' }}>
                     <div style={{ color: '#155DFC'}}><GraduationCap size={20} /></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontSize: '12px', color: 'gray' }}>Program</span>
                         <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.program}</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '120px' }}>
                     <div style={{ color: '#155DFC'}}><CalendarDays size={20} /></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontSize: '12px', color: 'gray' }}>Year Level</span>
@@ -241,11 +242,20 @@ export default function ManageStudentRecords() {
                         </span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ color: '#155DFC'}}><UserCircle2 size={20} /></div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '120px' }}>
+                    <div style={{ color: '#155DFC'}}><Users size={20} /></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '12px', color: 'gray' }}>Student ID</span>
-                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.id_number}</span>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Gender</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.gender || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '120px' }}>
+                    <div style={{ color: '#155DFC'}}><Hash size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Age</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.age || 'N/A'}</span>
                     </div>
                 </div>
             </div>
@@ -253,7 +263,6 @@ export default function ManageStudentRecords() {
             <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
                 <img 
                   src={getFullImageUrl(selectedDetailStudent.qr_code)} 
                   alt="Zoomed Student QR" 
