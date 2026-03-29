@@ -330,7 +330,7 @@ export default function Dashboard() {
                                 width: "90px",
                                 height: "90px",
                                 borderRadius: "8px",
-                                border: "1px dashed #ef4444",
+                                border: "1px dashed #9ca3af",
                                 background: "#fef2f2",
                                 display: "flex",
                                 alignItems: "center",
@@ -343,7 +343,7 @@ export default function Dashboard() {
                                 style={{
                                   fontSize: "11px",
                                   fontWeight: "600",
-                                  color: "#ef4444",
+                                  color: "#9ca3af",
                                   textTransform: "uppercase",
                                   lineHeight: "1.2",
                                 }}
@@ -443,8 +443,11 @@ export default function Dashboard() {
                                 scan.validity === "VERIFIED" &&
                                 scan.full_name &&
                                 scan.id_number !== "Not in Masterlist"
-                                  ? "#22c55e"
-                                  : "#ff0000",
+                                  ? "#22c55e" // green
+                                  : !scan.full_name ||
+                                      scan.id_number === "Not in Masterlist"
+                                    ? "#9ca3af" // gray for INVALID
+                                    : "#ff0000", // red for other cases (optional)
                             }}
                           >
                             {!scan.full_name ||

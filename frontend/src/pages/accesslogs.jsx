@@ -202,7 +202,9 @@ export default function AccessLogs() {
 
       <div className="container1">
         <div
-          className={location.pathname === "/dashboard" ? "active-item" : "item"}
+          className={
+            location.pathname === "/dashboard" ? "active-item" : "item"
+          }
           onClick={() => navigate("/dashboard")}
         >
           <img src="/images/Icon.png" className="icon1" alt="icon" />
@@ -555,7 +557,9 @@ export default function AccessLogs() {
                             backgroundColor:
                               !isMissing && log.status === "VERIFIED"
                                 ? "#22c55e" // green
-                                : "#ef4444", // red
+                                : isMissing
+                                  ? "#9ca3af" // gray for INVALID
+                                  : "#ef4444", // red for other non-verified (optional)
                           }}
                         >
                           {isMissing ? "INVALID" : log.status || "UNKNOWN"}
