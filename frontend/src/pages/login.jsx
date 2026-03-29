@@ -7,25 +7,21 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(
+    () => localStorage.getItem("saved_email") || "",
+  );
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(
+    () => !!localStorage.getItem("saved_email"),
+  );
 
   useEffect(() => {
-    // If they already have a token, send them straight to the dashboard
     if (
       localStorage.getItem("access_token") ||
       sessionStorage.getItem("access_token")
     ) {
       navigate("/dashboard");
-    }
-
-    // If they saved their email last time, pre-fill it!
-    const savedEmail = localStorage.getItem("saved_email");
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
     }
   }, [navigate]);
 
@@ -71,6 +67,7 @@ export default function Login() {
         setError("Invalid credentials. Please try again.");
       }
     } catch (err) {
+      console.error(err);
       setError("Cannot connect to the server. Is Django running?");
     }
   };

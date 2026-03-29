@@ -37,16 +37,6 @@ export default function Dashboard() {
     return `${API_BASE}${photo}`;
   };
 
-  useEffect(() => {
-    fetchDashboardData(true); // first load only
-
-    const interval = setInterval(() => {
-      fetchDashboardData(false); // silent refresh
-    }, 2000); // or 3000 / 5000
-
-    return () => clearInterval(interval);
-  }, []);
-
   const fetchDashboardData = async (showLoader = false) => {
     try {
       if (showLoader) setLoading(true);
@@ -79,6 +69,25 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    fetchDashboardData(true);
+
+    const interval = setInterval(() => {
+      fetchDashboardData(false);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+
+    navigate("/");
+  };
+
   return (
     <div className="page">
       <header className="header">
@@ -89,7 +98,9 @@ export default function Dashboard() {
 
         <nav className="container1">
           <div
-            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            className={
+              location.pathname === "/dashboard" ? "active-item" : "item"
+            }
             onClick={() => navigate("/dashboard")}
           >
             <img src="/images/Icon.png" className="icon1" alt="icon" />
@@ -117,12 +128,13 @@ export default function Dashboard() {
             <UserPen className="icon2" />
             Manage Student Records
           </div>
-          <div 
-            className="item" 
-            onClick={handleLogout} 
-            style={{ color: '#dc2626', fontWeight: 'bold' }} // Making it red so it stands out!
+
+          <div
+            className="item"
+            onClick={handleLogout}
+            style={{ color: "#dc2626", fontWeight: "bold" }}
           >
-            <LogOut size={16} style={{ marginRight: '6px' }} />
+            <LogOut size={16} style={{ marginRight: "6px" }} />
             Logout
           </div>
         </nav>
@@ -164,7 +176,6 @@ export default function Dashboard() {
         </section>
 
         <section className="container6">
-          {" "}
           <section className="dash-containers2" style={{ marginTop: "20px" }}>
             <div className="dash-header">
               <div className="txt1">
@@ -187,8 +198,8 @@ export default function Dashboard() {
             >
               <table
                 style={{
-                  width: "100%", // 👈 not 100% so it can visually center
-                  margin: "0 auto", // 👈 centers horizontally
+                  width: "100%",
+                  margin: "0 auto",
                   borderCollapse: "collapse",
                 }}
               >
@@ -314,7 +325,6 @@ export default function Dashboard() {
                         >
                           {scan.id_number === "Not in Masterlist" ||
                           !scan.full_name ? (
-                            /* Placeholder Box */
                             <div
                               style={{
                                 width: "90px",
@@ -342,7 +352,6 @@ export default function Dashboard() {
                               </span>
                             </div>
                           ) : (
-                            /* Actual Student Photo */
                             <img
                               src={getPhotoSrc(scan.photo)}
                               alt={scan.full_name || "Student"}
@@ -361,6 +370,7 @@ export default function Dashboard() {
                             />
                           )}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -371,6 +381,7 @@ export default function Dashboard() {
                         >
                           {displayValue(scan.timestamp)}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -381,6 +392,7 @@ export default function Dashboard() {
                         >
                           {displayValue(scan.id_number)}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -391,6 +403,7 @@ export default function Dashboard() {
                         >
                           {displayValue(scan.full_name)}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -401,6 +414,7 @@ export default function Dashboard() {
                         >
                           {displayValue(scan.program)}
                         </td>
+
                         <td
                           style={{
                             textAlign: "left",
@@ -411,6 +425,7 @@ export default function Dashboard() {
                         >
                           {displayValue(scan.year_level)}
                         </td>
+
                         <td
                           style={{
                             textAlign: "center",
@@ -425,7 +440,6 @@ export default function Dashboard() {
                               fontWeight: "600",
                               color: "white",
                               backgroundColor:
-                                // Logic: Green only if verified AND we actually have a name/valid record
                                 scan.validity === "VERIFIED" &&
                                 scan.full_name &&
                                 scan.id_number !== "Not in Masterlist"
@@ -433,9 +447,6 @@ export default function Dashboard() {
                                   : "#ff0000",
                             }}
                           >
-                            {/* Logic: If name is missing OR ID is "Not in Masterlist", 
-       it's an invalid attempt. Otherwise, show the API status.
-    */}
                             {!scan.full_name ||
                             scan.id_number === "Not in Masterlist"
                               ? "INVALID"

@@ -42,20 +42,24 @@ body {
 }
 
 /* Nav pills */
-.container1 {
-  width: fit-content;
-  max-width: 90%;
-  margin: 0 auto;     
-  height: 38px;
+.page .container1 {
+  width: fit-content; /* 👈 only as wide as needed */
+  max-width: 90%; /* prevent overflow */
+  margin: 0 auto;
+  height: 38px; /* 👈 centers it */
+
   background-color: #efefef;
   border-radius: 999px;
   padding: 8px;
-  color: black;
+
   display: flex;
   gap: 10px;
   flex-wrap: nowrap;
+  color: black;
+  /*top: 150px;*/
+
   box-sizing: border-box;
-  justify-self: center;
+  justify-self: center; /* ✅ centers within grid parent */
 }
 
 .item,
@@ -102,27 +106,9 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(332px, 1fr));
   gap: 16px;
-  margin-top: 175px;
+  margin-top: clamp(40px, 19vh, 500px);
   height: 45%;
-  width: 1370px;
-  
 }
-.container2 {
-  display: flex;
-  flex-direction: column; /* Stacks items vertically */
-  padding: 30px;          /* Pushes content away from the borders */
-  box-sizing: border-box; /* Ensures padding doesn't make the box wider than 1370px */
-  
-  width: 1370px;
-  height: 740px; 
-  background-color: white;
-  border-radius: 14px;
-  position: absolute;
-  top: 200px;
-  left: 80px;
-  border: 2px solid #e5e7eb;
-}
-
 
 .dash-item {
   background-color: white;
