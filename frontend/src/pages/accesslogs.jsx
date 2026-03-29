@@ -202,8 +202,8 @@ export default function AccessLogs() {
 
       <div className="container1">
         <div
-          className={location.pathname === "/" ? "active-item" : "item"}
-          onClick={() => navigate("/")}
+          className={location.pathname === "/dashboard" ? "active-item" : "item"}
+          onClick={() => navigate("/dashboard")}
         >
           <img src="/images/Icon.png" className="icon1" alt="icon" />
           Dashboard

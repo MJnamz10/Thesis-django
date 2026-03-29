@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/dashboard.css";
-import { UserPen } from "lucide-react";
+import { UserPen, LogOut } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -89,8 +89,8 @@ export default function Dashboard() {
 
         <nav className="container1">
           <div
-            className={location.pathname === "/" ? "active-item" : "item"}
-            onClick={() => navigate("/")}
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            onClick={() => navigate("/dashboard")}
           >
             <img src="/images/Icon.png" className="icon1" alt="icon" />
             Dashboard
@@ -116,6 +116,14 @@ export default function Dashboard() {
           >
             <UserPen className="icon2" />
             Manage Student Records
+          </div>
+          <div 
+            className="item" 
+            onClick={handleLogout} 
+            style={{ color: '#dc2626', fontWeight: 'bold' }} // Making it red so it stands out!
+          >
+            <LogOut size={16} style={{ marginRight: '6px' }} />
+            Logout
           </div>
         </nav>
       </header>
