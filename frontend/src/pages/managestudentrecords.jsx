@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
@@ -15,6 +15,7 @@ import {
   Users,
   Hash,
   Trash2,
+  Upload,
 } from "lucide-react";
 import AddStudentModal from "./AddStudentModal";
 
@@ -33,7 +34,49 @@ export default function ManageStudentRecords() {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [adminPassword, setAdminPassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
+const fileInputRef = useRef(null);
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
 
+const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 1. Package the file into a FormData object (required for sending files)
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // 2. Send it to Django!
+      const response = await fetch("http://127.0.0.1:8000/api/students/bulk-import/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+if (response.ok) {
+        if (data.errors && data.errors.length > 0) {
+          // This will pop up the exact reasons why Django rejected the rows!
+          alert(`${data.message}\n\nReasons for failure:\n${data.errors.slice(0, 5).join('\n')}`);
+          console.log("Full Error List:", data.errors);
+        } else {
+          alert(data.message);
+        }
+        refresh(); 
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      alert("Network error while trying to import the file.");
+    } finally {
+      // 3. Clear the input so the user can import the same file again if needed
+      e.target.value = null; 
+    }
+  };
+  
   // Updated helper function to generate initials
   const getFullImageUrl = (path, fullName) => {
     // 1. If they uploaded a real photo, always use it!
@@ -51,6 +94,37 @@ export default function ManageStudentRecords() {
     // 3. Absolute fallback just in case a record has no name and no photo
     return "/images/default-avatar.png";
   };
+
+// 👉 NEW: Triggers the download of the CSV file from Django
+  const handleExportClick = async () => {
+    try {
+      // 1. Fetch the file from our new Django URL
+      const response = await fetch("http://127.0.0.1:8000/api/students/export/csv/", {
+        method: "GET",
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      // 2. Convert the response into a downloadable "Blob" (Binary Large Object)
+      const blob = await response.blob();
+
+      // 3. Create a temporary, invisible link in the browser to force the download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "VerifID_Student_Records.csv"; // The name of the file
+      
+      // 4. Click the invisible link, then clean it up!
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export student records. Is the server running?");
+    }
+  };  
 
   const handleEditClick = (student) => {
     setSelectedStudent(student);
@@ -182,7 +256,19 @@ export default function ManageStudentRecords() {
           </div>
 
           <div style={{ display: "flex", gap: "12px" }}>
-            <button
+            <input
+              type="file"
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              style={{ display: 'none' }}
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+
+            <button onClick={handleImportClick} className="export-button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500', color: '#1c398e' }}>
+              <Upload size={16} /> Import
+            </button>
+           <button
+              onClick={handleExportClick} 
               className="export-button"
               style={{
                 display: "flex",

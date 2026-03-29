@@ -254,7 +254,7 @@ export default function AddStudentModal({
               className="input"
               onChange={handleChange}
             >
-              <option value="NOT_VERIFIED">Not Verified</option>
+              <option value="NOT VERIFIED">Not Verified</option>
               <option value="VERIFIED">Verified</option>
               <option value="INVALID">Invalid</option>
             </select>
