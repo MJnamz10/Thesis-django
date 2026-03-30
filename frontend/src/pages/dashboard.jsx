@@ -19,75 +19,49 @@ export default function Dashboard() {
   const [recentScans, setRecentScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const displayValue = (val) => {
-    if (
-      val === null ||
-      val === undefined ||
-      val === "" ||
-      val === "Not in Masterlist"
-    ) {
-      return "N/A";
-    }
-    return val;
-  };
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const getPhotoSrc = (photo) => {
-    if (!photo) return "/images/default-avatar.png";
-    if (photo.startsWith("http")) return photo;
-    return `${API_BASE}${photo}`;
-  };
-
-  const fetchDashboardData = async (showLoader = false) => {
+  const fetchDashboardData = async () => {
     try {
-      if (showLoader) setLoading(true);
+      setLoading(true);
 
       const response = await fetch(`${API_BASE}/api/verifid/dashboard-data`);
-      if (!response.ok) throw new Error("Failed to fetch dashboard data");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
 
       const data = await response.json();
 
-      const newStats = {
+      setStats({
         totalStudents: data.stats?.totalStudents || 0,
         grantedToday: data.stats?.grantedToday || 0,
         deniedToday: data.stats?.deniedToday || 0,
         trafficToday: data.stats?.trafficToday || 0,
-      };
+      });
 
-      setStats((prev) =>
-        JSON.stringify(prev) === JSON.stringify(newStats) ? prev : newStats,
-      );
-
-      setRecentScans((prev) =>
-        JSON.stringify(prev) === JSON.stringify(data.recentScans || [])
-          ? prev
-          : data.recentScans || [],
-      );
+      setRecentScans(data.recentScans || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
-      if (showLoader) setLoading(false);
+      setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchDashboardData(true);
-
-    const interval = setInterval(() => {
-      fetchDashboardData(false);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleLogout = () => {
+const handleLogout = () => {
+    // 1. Shred the tokens from both local and session storage
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     sessionStorage.removeItem("access_token");
     sessionStorage.removeItem("refresh_token");
+    
+    // Note: We intentionally DO NOT remove "saved_email" 
+    // so the "Remember Me" feature still works next time!
 
+    // 2. Kick them back to the login page
     navigate("/");
   };
-
   return (
     <div className="page">
       <header className="header">
@@ -98,9 +72,7 @@ export default function Dashboard() {
 
         <nav className="container1">
           <div
-            className={
-              location.pathname === "/dashboard" ? "active-item" : "item"
-            }
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
             onClick={() => navigate("/dashboard")}
           >
             <img src="/images/Icon.png" className="icon1" alt="icon" />
@@ -128,13 +100,12 @@ export default function Dashboard() {
             <UserPen className="icon2" />
             Manage Student Records
           </div>
-
-          <div
-            className="item"
-            onClick={handleLogout}
-            style={{ color: "#dc2626", fontWeight: "bold" }}
+          <div 
+            className="item" 
+            onClick={handleLogout} 
+            style={{ color: '#dc2626', fontWeight: 'bold' }} // Making it red so it stands out!
           >
-            <LogOut size={16} style={{ marginRight: "6px" }} />
+            <LogOut size={16} style={{ marginRight: '6px' }} />
             Logout
           </div>
         </nav>
@@ -151,7 +122,7 @@ export default function Dashboard() {
           </div>
 
           <div className="dash-item">
-            <p className="title1">Access Verified Today</p>
+            <p className="title1">Access Granted Today</p>
             <p style={{ fontSize: 28, fontWeight: 700, color: "green" }}>
               {loading ? "..." : stats.grantedToday}
             </p>
@@ -168,7 +139,7 @@ export default function Dashboard() {
 
           <div className="dash-item">
             <p className="title1">Today's Traffic</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: "purple" }}>
+            <p style={{ fontSize: 28, fontWeight: 700, color: "orange" }}>
               {loading ? "..." : stats.trafficToday}
             </p>
             <img src="/images/Dashboard (3).png" className="icons" alt="" />
@@ -176,286 +147,61 @@ export default function Dashboard() {
         </section>
 
         <section className="container6">
+          {" "}
           <section className="dash-containers2" style={{ marginTop: "20px" }}>
             <div className="dash-header">
               <div className="txt1">
-                <p>Recent Access Activity</p>
+                <p>Recent Scans</p>
               </div>
               <div className="txt2">
-                <p>Latest student access attempts at Main Gate</p>
+                <p>Same records saved by the scanner app</p>
               </div>
             </div>
 
-            <div
-              style={{
-                overflowX: "auto",
-                border: "3px solid #ECECF0",
-                borderRadius: "10px",
-                overflowY: "auto",
-                minHeight: "425px",
-                height: "100%",
-              }}
-            >
-              <table
-                style={{
-                  width: "100%",
-                  margin: "0 auto",
-                  borderCollapse: "collapse",
-                }}
-              >
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th
-                      style={{
-                        width: "10%",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                        textAlign: "center",
-                      }}
-                    >
-                      Photo
-                    </th>
-                    <th
-                      style={{
-                        width: "18%",
-                        padding: "10px",
-                        textAlign: "center",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
                       Timestamp
                     </th>
-                    <th
-                      style={{
-                        width: "16%",
-                        paddingRight: "8%",
-                        textAlign: "center",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
-                      Student ID
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      ID Number
                     </th>
-                    <th
-                      style={{
-                        width: "19%",
-                        textAlign: "center",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
-                      Student Name
-                    </th>
-                    <th
-                      style={{
-                        width: "16%",
-                        textAlign: "center",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>Name</th>
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
                       Program
                     </th>
-                    <th
-                      style={{
-                        width: "10%",
-                        textAlign: "center",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
-                      Year
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Year Level
                     </th>
-                    <th
-                      style={{
-                        width: "20%",
-                        textAlign: "center",
-                        padding: "10px",
-                        color: "gray",
-                        borderBottom: "2px solid #ECECF0",
-                      }}
-                    >
-                      Validity
+                    <th style={{ textAlign: "left", padding: "10px", color: "gray" }}>
+                      Status
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td
-                        colSpan="7"
-                        style={{ padding: "10px", color: "gray" }}
-                      >
+                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
                         Loading...
                       </td>
                     </tr>
                   ) : recentScans.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan="7"
-                        style={{
-                          padding: "10px",
-                          color: "gray",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          height: "37vh",
-                        }}
-                      >
+                      <td colSpan="6" style={{ padding: "10px", color: "gray" }}>
                         No scan records found.
                       </td>
                     </tr>
                   ) : (
                     recentScans.map((scan) => (
                       <tr key={scan.id}>
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "3%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                            paddingTop: "8px",
-                            paddingBottom: "8px",
-                          }}
-                        >
-                          {scan.id_number === "Not in Masterlist" ||
-                          !scan.full_name ? (
-                            <div
-                              style={{
-                                width: "90px",
-                                height: "90px",
-                                borderRadius: "8px",
-                                border: "1px dashed #9ca3af",
-                                background: "#fef2f2",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                padding: "5px",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "11px",
-                                  fontWeight: "600",
-                                  color: "#9ca3af",
-                                  textTransform: "uppercase",
-                                  lineHeight: "1.2",
-                                }}
-                              >
-                                No Student <br /> Record
-                              </span>
-                            </div>
-                          ) : (
-                            <img
-                              src={getPhotoSrc(scan.photo)}
-                              alt={scan.full_name || "Student"}
-                              style={{
-                                width: "100px",
-                                height: "100px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
-                                border: "1px solid #E4E7EC",
-                                background: "#F9FAFB",
-                              }}
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "/images/default-avatar.png";
-                              }}
-                            />
-                          )}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "6.3%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          {displayValue(scan.timestamp)}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "4.5%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          {displayValue(scan.id_number)}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "6%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          {displayValue(scan.full_name)}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "6%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          {displayValue(scan.program)}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "left",
-                            paddingLeft: "4.5%",
-                            color: "gray",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          {displayValue(scan.year_level)}
-                        </td>
-
-                        <td
-                          style={{
-                            textAlign: "center",
-                            borderBottom: "2px solid #ECECF0",
-                          }}
-                        >
-                          <span
-                            style={{
-                              padding: "4px 10px",
-                              borderRadius: "12px",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              color: "white",
-                              backgroundColor:
-                                scan.validity === "VERIFIED" &&
-                                scan.full_name &&
-                                scan.id_number !== "Not in Masterlist"
-                                  ? "#22c55e" // green
-                                  : !scan.full_name ||
-                                      scan.id_number === "Not in Masterlist"
-                                    ? "#9ca3af" // gray for INVALID
-                                    : "#ff0000", // red for other cases (optional)
-                            }}
-                          >
-                            {!scan.full_name ||
-                            scan.id_number === "Not in Masterlist"
-                              ? "INVALID"
-                              : scan.validity || "UNKNOWN"}
-                          </span>
-                        </td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.timestamp}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.id_number}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.full_name}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.program}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.year_level}</td>
+                        <td style={{ padding: "10px", color: "gray" }}>{scan.status}</td>
                       </tr>
                     ))
                   )}
@@ -463,6 +209,32 @@ export default function Dashboard() {
               </table>
             </div>
           </section>
+        </section>
+
+        <section className="dash-containers2">
+          <div className="dash-header">
+            <div className="txt1">
+              <p>Access Status Overview</p>
+            </div>
+            <div className="txt2">
+              <p>Today's verification results at Main Gate</p>
+            </div>
+          </div>
+
+          <div className="dash-containers3">
+            <div className="dash-item2 granted">
+              <img src="/images/grant.png" alt="" className="icon4" />
+              <p className="title2">
+                Granted: {loading ? "..." : stats.grantedToday}
+              </p>
+            </div>
+            <div className="dash-item2 denied">
+              <img src="/images/denied.png" alt="" className="icon5" />
+              <p className="title2">
+                Denied: {loading ? "..." : stats.deniedToday}
+              </p>
+            </div>
+          </div>
         </section>
       </main>
     </div>
