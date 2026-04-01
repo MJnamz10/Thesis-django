@@ -7,7 +7,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+  const API_BASE = import.meta.env.VITE_API_BASE;
 
   const [stats, setStats] = useState({
     totalStudents: 0,

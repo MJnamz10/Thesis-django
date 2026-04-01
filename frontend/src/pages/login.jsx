@@ -34,14 +34,11 @@ export default function Login() {
     setError(""); // Clear old errors
 
     try {
-      // 1. Send the data to Django
-      const response = await fetch("http://127.0.0.1:8000/api/login/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        // Django's default auth expects a 'username' field.
-        // We will pass your email input into the username field.
         body: JSON.stringify({
           username: email,
           password: password,
@@ -101,7 +98,7 @@ export default function Login() {
         <h1 className="login-title">Admin Login</h1>
         <p className="login-subtitle">Sign in to access the admin dashboard</p>
 
-        {/* NEW: Display the error message if there is one */}
+        {/* Display the error message if there is one */}
         {error && (
           <div
             style={{
