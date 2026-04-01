@@ -2,9 +2,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 
 from api.models import Student
-from .models import ScanLog
+from .models import ScanLog, ScannerStatus,  QRRawScan
 
 EXPECTED_API_KEY = getattr(settings, "GATE_API_KEY", "USTP_Gate_Scanner_Key_9x8B2vL5y")
 
@@ -16,14 +18,23 @@ def is_authorized(request):
 
 @api_view(["POST"])
 def verify_student(request):
-    if not is_authorized(request):
-        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+    #if not is_authorized(request):
+    #    return Response(
+    #       {"error": "Unauthorized"},
+    #       status=status.HTTP_401_UNAUTHORIZED
+    #   )
 
     scanned_id = request.data.get("id")
-    scanned_name = request.data.get("name")
-    scanned_course = request.data.get("course")
+    scanned_name = request.data.get("name", "")
+    scanned_course = request.data.get("course", "")
     gate = request.data.get("gate", "Main Gate")
     qr_payload = request.data.get("qr_payload", "")
+
+    QRRawScan.objects.create(
+        id_number=scanned_id or "",
+        full_name=scanned_name or "",
+        program=scanned_course or "",
+    )
 
     if not scanned_id:
         return Response(
@@ -38,12 +49,12 @@ def verify_student(request):
         student = Student.objects.get(id_number=scanned_id)
 
         student_data = {
-            "id": student.id_number,
-            "name": student.full_name,
+            "id_number": student.id_number,
+            "full_name": student.full_name,
             "program": student.program,
-            "year": student.get_year_level_display(),
+            "year_level": student.get_year_level_display(),
             "validity_status": student.validity_status,
-            "photo": student.photo.url if student.photo else None,
+            "photo": student.photo.url if getattr(student, "photo", None) else None,
         }
 
         mismatches = {}
@@ -62,7 +73,7 @@ def verify_student(request):
 
         if student.validity_status != Student.ValidityStatus.VERIFIED:
             scan = ScanLog.objects.create(
-                student_id=student.id_number,
+                id_number=student.id_number,
                 full_name=student.full_name,
                 program=student.program,
                 year_level=student.get_year_level_display(),
@@ -84,7 +95,7 @@ def verify_student(request):
             )
 
         scan = ScanLog.objects.create(
-            student_id=student.id_number,
+            id_number=student.id_number,
             full_name=student.full_name,
             program=student.program,
             year_level=student.get_year_level_display(),
@@ -107,9 +118,10 @@ def verify_student(request):
 
     except Student.DoesNotExist:
         scan = ScanLog.objects.create(
-            student_id=scanned_id,
+            id_number=scanned_id,
             full_name=scanned_name,
             program=scanned_course,
+            year_level="",
             qr_payload=qr_payload,
             gate=gate,
             status="denied",
@@ -125,3 +137,170 @@ def verify_student(request):
             },
             status=status.HTTP_404_NOT_FOUND
         )
+    
+
+def get_student_photo_url(student):
+    if not student:
+        return None
+
+    photo = getattr(student, "photo", None)
+    if photo:
+        try:
+            return photo.url
+        except Exception:
+            return None
+
+    return None
+
+@api_view(["GET"])
+def dashboard_data(request):
+    today = timezone.localdate()
+    now = timezone.now()
+    stale_after = now - timedelta(seconds=10)
+
+    scanner = ScannerStatus.objects.filter(scanner_name="main_window").first()
+    scanner_online = bool(
+        scanner and scanner.is_online and scanner.last_seen >= stale_after
+    )
+
+    today_logs = ScanLog.objects.filter(created_at__date=today).order_by("-created_at")
+
+    if scanner_online:
+        # Same source as main_window.py
+        recent_logs = today_logs[:200]
+
+        total_students = (
+            today_logs
+            .values("id_number")
+            .exclude(id_number__isnull=True)
+            .exclude(id_number="")
+            .distinct()
+            .count()
+        )
+
+        granted_today = 0
+        denied_today = 0
+        traffic_today = today_logs.count()
+
+        for log in today_logs:
+            if not log.id_number:
+                denied_today += 1
+                continue
+
+            student = Student.objects.filter(id_number=log.id_number).first()
+
+            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+                granted_today += 1
+            else:
+                denied_today += 1
+
+        recent_scans = []
+
+        for log in recent_logs:
+            student = Student.objects.filter(id_number=log.id_number).first()
+
+            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+                validity = "VERIFIED"
+            else:
+                validity = "NOT VERIFIED"
+
+            local_created_at = timezone.localtime(log.created_at)
+            photo_url = get_student_photo_url(student)
+
+            recent_scans.append({
+                "id": log.id,
+                "timestamp": local_created_at.strftime("%I:%M:%S %p").lstrip("0"),
+                "id_number": log.id_number or "",
+                "full_name": log.full_name or "",
+                "program": log.program or "",
+                "year_level": log.year_level or "",
+                "validity": validity,
+                "status": log.status,
+                "reason": log.reason or "",
+                "gate": log.gate,
+                "qr_payload": log.qr_payload,
+                "created_at": local_created_at.isoformat(),
+                "photo": photo_url,
+
+            })
+    else:
+        total_students = 0
+        granted_today = 0
+        denied_today = 0
+        traffic_today = 0
+        recent_scans = []
+
+    return Response({
+        "scannerOnline": scanner_online,
+        "stats": {
+            "totalStudents": total_students,
+            "grantedToday": granted_today,
+            "deniedToday": denied_today,
+            "trafficToday": traffic_today,
+        },
+        "recentScans": recent_scans,
+    })
+
+@api_view(["POST"])
+def scanner_heartbeat(request):
+    scanner_name = request.data.get("scanner_name", "main_window")
+    gate = request.data.get("gate", "Main Gate")
+
+    scanner, _ = ScannerStatus.objects.get_or_create(
+        scanner_name=scanner_name,
+        defaults={"gate": gate}
+    )
+
+    scanner.gate = gate
+    scanner.is_online = True
+    scanner.last_seen = timezone.now()
+    scanner.save()
+
+    return Response({"message": "heartbeat received"})
+
+@api_view(["POST"])
+def scanner_offline(request):
+    scanner_name = request.data.get("scanner_name", "main_window")
+
+    try:
+        scanner = ScannerStatus.objects.get(scanner_name=scanner_name)
+        scanner.is_online = False
+        scanner.last_seen = timezone.now()
+        scanner.save()
+    except ScannerStatus.DoesNotExist:
+        pass
+
+    return Response({"message": "scanner marked offline"})
+
+@api_view(["GET"])
+def all_logs(request):
+    logs = ScanLog.objects.all().order_by("-created_at")[:500]  # limit optional
+
+    data = []
+    for log in logs:
+
+        student = Student.objects.filter(id_number=log.id_number).first()
+
+        if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+            status_label = "VERIFIED"
+        else:
+            status_label = "NOT VERIFIED"
+
+        photo_url = get_student_photo_url(student)
+
+        local_created_at = timezone.localtime(log.created_at)
+
+        data.append({
+            "id": log.id,
+            "timestamp": log.created_at.strftime("%I:%M:%S %p").lstrip("0"),
+            "created_at": local_created_at.isoformat(),
+            "id_number": log.id_number or "",
+            "full_name": log.full_name or "",
+            "program": log.program or "",
+            "year_level": log.year_level or "",
+            "status": status_label,
+            "reason": log.reason or "",
+            "photo": photo_url,
+        })
+
+    return Response(data)

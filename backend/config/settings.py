@@ -95,3 +95,5 @@ EMAIL_USE_TLS = True
 # Pulling the secure credentials from your .env file!
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+TIME_ZONE = 'Asia/Manila'
+USE_TZ = True

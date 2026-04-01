@@ -45,6 +45,16 @@ class MainWindow(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
 
+        self.heartbeat_timer = QTimer(self)
+        self.heartbeat_timer.timeout.connect(self.send_heartbeat)
+        self.heartbeat_timer.start(3000)  # every 3 seconds
+
+        self.current_date = datetime.now().date()
+        self.daily_refresh_timer = QTimer(self)
+        self.daily_refresh_timer.timeout.connect(self.check_for_new_day)
+        self.daily_refresh_timer.start(60000)
+
+
         self.frame_counter = 0
         self.latest_detections = []
         self.latest_source_shape = None
@@ -57,6 +67,8 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.apply_styles()
 
+        self.load_saved_logs()
+
     def _setup_worker(self):
         self.worker_thread = QThread(self)
         self.worker = DetectionWorker()
@@ -67,6 +79,14 @@ class MainWindow(QMainWindow):
         self.worker.error.connect(self.on_worker_error)
 
         self.worker_thread.start()
+
+
+    def check_for_new_day(self):
+        today = datetime.now().date()
+        if today != self.current_date:
+            self.current_date = today
+            self.load_saved_logs()
+            print("New day detected. Main window table refreshed.")
 
     def setup_ui(self):
         root = QWidget()
@@ -229,6 +249,53 @@ class MainWindow(QMainWindow):
         if self.table.rowCount() > 200:
             self.table.removeRow(self.table.rowCount() - 1)
 
+    def load_saved_logs(self):
+        try:
+            rows = self.api.get_today_logs(limit=200)
+            print("\n=== TODAY LOGS ===")
+            for i, row in enumerate(rows, start=1):
+                print(
+                    f"{i}. "
+                    f"id_number={row.get('id_number')}, "
+                    f"full_name={row.get('full_name')}, "
+                    f"program={row.get('program')}, "
+                    f"year_level={row.get('year_level')}, "
+                    f"status={row.get('status')}, "
+                    f"created_at={row.get('created_at')}"
+                )
+            print("==================\n")
+            
+            self.table.setRowCount(0)
+
+            for row in reversed(rows):
+                created_at = row.get("created_at")
+                timestamp = created_at.strftime("%I:%M:%S %p").lstrip("0") if created_at else ""
+
+                sid = str(row.get("id_number") or "")
+                name = row.get("full_name") or ""
+                program = row.get("program") or ""
+                year_level = str(row.get("year_level") or "")
+                status_text = row.get("status") or "denied"
+
+                # get student again for image
+                student = self.api.get_student_by_id(sid)
+                image_path = self.resolve_student_image_path(student) if student else None
+
+                self.insert_row_top(
+                    timestamp,
+                    sid,
+                    name,
+                    program,
+                    year_level,
+                    status_text,
+                    image_path=image_path,
+                )
+
+            print(f"Loaded {len(rows)} logs for today.")
+
+        except Exception as e:
+            print("Failed to load saved logs:", e)
+
     def resolve_student_image_path(self, db_student):
         candidates = [
             db_student.get("student_photos"),
@@ -262,35 +329,42 @@ class MainWindow(QMainWindow):
         return None
 
     def handle_scan_result(self, scan):
-        now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
-
         result = scan["verification"]
         parsed = scan["parsed"]
 
+        created_at = result.get("created_at")
+        if created_at:
+            try:
+                dt = datetime.fromisoformat(created_at)
+                now = dt.strftime("%I:%M:%S %p").lstrip("0")
+            except Exception:
+                now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
+        else:
+            now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
+
         db_student = result.get("student")
-        reason = result.get("reason", "unknown")
         status = result.get("status", "denied")
 
         if db_student:
             display_sid = str(db_student.get("id_number") or parsed["id"] or "-")
             display_name = db_student.get("full_name") or "Unknown"
             display_prog = db_student.get("program") or "Unknown"
-            display_year = f"{db_student.get('year_level', '-')}" + (
-                "th Year" if str(db_student.get("year_level", "")).isdigit() else ""
-            )
+            
+            # Formatting year level
+            y_lvl = db_student.get('year_level', '-')
+            display_year = f"{y_lvl}" + ("th Year" if str(y_lvl).isdigit() else "")
 
-            # Change this field name if your DB uses a different one
             image_path = self.resolve_student_image_path(db_student)
-            print("Resolved image path:", image_path)
-            status_text = "granted" if status == "verified" else "denied"
-
+            status_text = "granted" if status == "granted" else "denied"
         else:
-            display_name = "Not in Masterlist"
-            display_prog = reason.replace("_", " ").title()
-            display_sid = parsed["id"] or "-"
-            display_year = "-"
-            image_path = None
-            status_text = "denied"
+            # --- Logic for Student Not in Masterlist ---
+            display_name = "N/A"
+            display_sid = parsed["id"] or "N/A"
+            display_prog = "N/A"
+            display_year = "N/A"
+            image_path = None        # No image will be displayed
+            status_text = "invalid"  # This will show the "Unknown" pill
+            # --------------------------------------------
 
         self.insert_row_top(
             now,
@@ -313,6 +387,12 @@ class MainWindow(QMainWindow):
             self.handle_scan_result(result)
 
         self.id_input.clear()
+
+    def send_heartbeat(self):
+        try:
+            self.api.send_heartbeat()
+        except Exception as e:
+            print("Heartbeat failed:", e)
 
     def toggle_camera(self):
         if self.camera.cap is None:
@@ -423,11 +503,36 @@ class MainWindow(QMainWindow):
         print("Worker error:", message)
 
     def closeEvent(self, event):
-        self.stop_camera()
-        self.api.close()
+        try:
+            self.heartbeat_timer.stop()
+        except Exception:
+            pass
 
-        self.worker_thread.quit()
-        self.worker_thread.wait()
+        try:
+            self.daily_refresh_timer.stop()
+        except Exception:
+            pass
+
+        try:
+            self.api.send_offline()
+        except Exception as e:
+            print("Failed to send offline status:", e)
+
+        try:
+            self.stop_camera()
+        except Exception:
+            pass
+
+        try:
+            self.api.close()
+        except Exception:
+            pass
+
+        try:
+            self.worker_thread.quit()
+            self.worker_thread.wait()
+        except Exception:
+            pass
 
         super().closeEvent(event)
 
@@ -451,6 +556,8 @@ class MainWindow(QMainWindow):
             background: #ffffff;
             border: 1px solid #cfd5df;
             border-radius: 12px;
+            /* Prevent horizontal overflow */
+            overflow: hidden; 
         }
 
         QTableWidget#table {
@@ -508,9 +615,19 @@ class MainWindow(QMainWindow):
             font-size: 10px;
             font-weight: 700;
         }
+        QLabel#pillUnknown {
+            background: #6b7280; /* Gray color for unknown */
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
 
         QLabel#pillDenied {
             background: #e11d48;
+            width: 100px;
             color: white;
             border: none;
             border-radius: 12px;
@@ -519,3 +636,4 @@ class MainWindow(QMainWindow):
             font-weight: 700;
         }
         """)
+        

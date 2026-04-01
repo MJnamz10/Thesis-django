@@ -267,7 +267,11 @@ export default function ManageStudentRecords() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="8" style={{ textAlign: "center" }}>Loading...</td></tr>
+                <tr>
+                  <td colSpan="8" style={{ textAlign: "center" }}>
+                    Loading...
+                  </td>
+                </tr>
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <tr key={student.id_number}>
@@ -344,8 +348,13 @@ export default function ManageStudentRecords() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
-                    {searchQuery ? `No results found for "${searchQuery}"` : "No student records available."}
+                  <td
+                    colSpan="8"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    {searchQuery
+                      ? `No results found for "${searchQuery}"`
+                      : "No student records available."}
                   </td>
                 </tr>
               )}
@@ -427,201 +436,79 @@ export default function ManageStudentRecords() {
               </button>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src={getFullImageUrl(
-                  selectedDetailStudent.photo,
-                  selectedDetailStudent.full_name,
-                )} // <-- Pass full_name here
-                alt={selectedDetailStudent.full_name}
-                style={{
-                  width: "120px",
-                  height: "120px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  marginBottom: "16px",
-                }}
-                onError={(e) => {
-                  e.target.src = "/images/default-avatar.png";
-                }}
-              />
-              <h3 style={{ fontSize: "20px", fontWeight: "bold", margin: "0" }}>
-                {selectedDetailStudent.full_name}
-              </h3>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "gray",
-                  margin: "8px 0 16px 0",
-                }}
-              >
-                {selectedDetailStudent.id_number}
-              </p>
-
-              <div
-                style={{
-                  backgroundColor:
-                    selectedDetailStudent.validity_status === "VERIFIED"
-                      ? "#EBF8F2"
-                      : selectedDetailStudent.validity_status === "INVALID"
-                        ? "#FEEDEA"
-                        : "#F2F4F7",
-                  color:
-                    selectedDetailStudent.validity_status === "VERIFIED"
-                      ? "#1B9B62"
-                      : selectedDetailStudent.validity_status === "INVALID"
-                        ? "#CB2B21"
-                        : "#616161",
-                  padding: "8px 16px",
-                  borderRadius: "20px",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  marginBottom: "20px",
-                  textTransform: "capitalize",
-                }}
-              >
-                {selectedDetailStudent.validity_status.replace("_", " ")}
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#101828' }}>
+                <img 
+                  src={getFullImageUrl(selectedDetailStudent.photo)} 
+                  alt={selectedDetailStudent.full_name} 
+                  style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px' }} 
+                  onError={(e) => { e.target.src = "/images/default-avatar.png"; }}
+                />
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0' }}>{selectedDetailStudent.full_name}</h3>
+                <p style={{ fontSize: '14px', color: 'gray', margin: '8px 0 16px 0' }}>{selectedDetailStudent.id_number}</p>
+                
+                <div style={{ 
+                    backgroundColor: selectedDetailStudent.validity_status === 'VERIFIED' ? '#EBF8F2' : selectedDetailStudent.validity_status === 'INVALID' ? '#FEEDEA' : '#F2F4F7',
+                    color: selectedDetailStudent.validity_status === 'VERIFIED' ? '#1B9B62' : selectedDetailStudent.validity_status === 'INVALID' ? '#CB2B21' : '#616161',
+                    padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '14px', marginBottom: '20px', textTransform: 'capitalize'
+                }}>
+                    {selectedDetailStudent.validity_status.replace('_', ' ')}
+                </div>
             </div>
 
-            <div
-              style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-            />
+        <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
-            {/* --- UPDATED: Student Info Grid with Gender and Age --- */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "32px",
-                marginBottom: "20px",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <GraduationCap size={20} />
+            {/* --- UPDATED: Perfect 2x2 Grid for Student Info --- */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', /* This creates two equal-width columns */
+              gap: '24px 16px',               /* 24px vertical gap, 16px horizontal gap */
+              marginBottom: '20px', 
+              width: '100%', 
+              padding: '0 16px', 
+              boxSizing: 'border-box' 
+            }}>
+                {/* 1. Program (Top Left) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><GraduationCap size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Program</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.program}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Program
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.program}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <CalendarDays size={20} />
+                {/* 2. Year Level (Top Right) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><CalendarDays size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Year Level</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>
+                          {{ "1": "1st Year", "2": "2nd Year", "3": "3rd Year", "4": "4th Year", "5": "5th Year" }[selectedDetailStudent.year_level] || selectedDetailStudent.year_level}
+                        </span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Year Level
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {{
-                      1: "1st Year",
-                      2: "2nd Year",
-                      3: "3rd Year",
-                      4: "4th Year",
-                      5: "5th Year",
-                    }[selectedDetailStudent.year_level] ||
-                      selectedDetailStudent.year_level}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <Users size={20} />
+                {/* 3. Gender (Bottom Left) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><Users size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Gender</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.gender || 'N/A'}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>
-                    Gender
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.gender || "N/A"}
-                  </span>
-                </div>
-              </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  minWidth: "120px",
-                }}
-              >
-                <div style={{ color: "#155DFC" }}>
-                  <Hash size={20} />
+                {/* 4. Age (Bottom Right) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ color: '#155DFC'}}><Hash size={20} /></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: 'gray' }}>Age</span>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#101828'}}>{selectedDetailStudent.age || 'N/A'}</span>
+                    </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "12px", color: "gray" }}>Age</span>
-                  <span
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      color: "#101828",
-                    }}
-                  >
-                    {selectedDetailStudent.age || "N/A"}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div
-              style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-            />
+            <div style={{ borderTop: '1px solid #E4E7EC', marginBottom: '20px' }} />
 
+      
             <div
               style={{
                 display: "flex",
