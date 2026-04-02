@@ -240,30 +240,88 @@ return (
       </header>
 
       {/* Main Content Area */}
-      <main className="main">
-        <div className="container2">
-          
-          {/* --- Top Header Row: Titles + Date/Export Filters --- */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-            <div>
-              <div className="text1" style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Access Logs</div>
-              <div className="text2" style={{ margin: '4px 0 0 0', color: 'gray' }}>Complete history of all access attempts</div>
+      <div className="container2">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: "24px",
+          }}
+        >
+          <div>
+            <div
+              className="text1"
+              style={{ margin: 0, fontSize: "24px", fontWeight: "bold" }}
+            >
+              Access Logs
             </div>
-            
-            {/* Top Right Filters */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <button style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500' }}>
-                Today
-              </button>
-              
-              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F9FAFB', border: '1px solid #E4E7EC', borderRadius: '8px', padding: '0 12px' }}>
-                <input 
-                  type="date" 
-                  style={{ border: 'none', backgroundColor: 'transparent', padding: '8px 0', outline: 'none', color: '#344054', fontFamily: 'inherit' }} 
-                />
-              </div>
+            <div
+              className="text2"
+              style={{ margin: "4px 0 0 0", color: "gray" }}
+            >
+              Complete history of all access attempts
+            </div>
+          </div>
 
-              <button
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              onClick={handleTodayFilter}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px solid #E4E7EC",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontWeight: "500",
+                color: "black",
+                
+              }}
+            >
+              Today
+            </button>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "#F9FAFB",
+                border: "1px solid #E4E7EC",
+                borderRadius: "8px",
+                padding: "0 12px",
+                gap: "8px",
+              }}
+            >
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{
+                  border: "none",
+                  backgroundColor: "transparent",
+                  padding: "8px 0",
+                  outline: "none",
+                  color: "#344054",
+                  fontFamily: "inherit",
+                }}
+              />
+              {selectedDate && (
+                <button
+                  onClick={clearDateFilter}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    color: "#667085",
+                    fontWeight: "600",
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <button
               onClick={exportToCSV}
               style={{
                 display: "flex",
@@ -278,10 +336,10 @@ return (
                 color: "black",
               }}
             >
-                <Download size={16} /> Export CSV
-              </button>
-            </div>
+              <Download size={16} /> Export CSV
+            </button>
           </div>
+        </div>
 
         <div
           style={{

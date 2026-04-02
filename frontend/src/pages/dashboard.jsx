@@ -34,14 +34,14 @@ export default function Dashboard() {
   const getPhotoSrc = (photo) => {
     if (!photo) return "/images/default-avatar.png";
     if (photo.startsWith("http")) return photo;
-    return `${API_BASE}${photo}`;
+    return `${import.meta.env.VITE_API_BASE}${photo}`;
   };
 
   const fetchDashboardData = async (showLoader = false) => {
     try {
       if (showLoader) setLoading(true);
 
-      const response = await fetch(`${API_BASE}/api/verifid/dashboard-data`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/verifid/dashboard-data`);
       if (!response.ok) throw new Error("Failed to fetch dashboard data");
 
       const data = await response.json();
@@ -99,9 +99,7 @@ export default function Dashboard() {
         {/* Navigation Bar */}
         <nav className="container1">
           <div
-            className={
-              location.pathname === "/dashboard" ? "active-item" : "item"
-            }
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
             onClick={() => navigate("/dashboard")}
           >
             <img src="/images/Icon.png" className="icon1" alt="icon" />

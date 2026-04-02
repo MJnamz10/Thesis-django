@@ -34,6 +34,7 @@ const handleSubmit = async (e) => {
         setError("Something went wrong. Please try again later.");
       }
     } catch (err) {
+      console.error("Network error:", err);
       setError("Cannot connect to the server. Is Django running?");
     }
   };

@@ -52,6 +52,7 @@ export default function ResetPassword() {
         setError(data.error || "Invalid or expired reset link. Please try again.");
       }
     } catch (err) {
+      console.error("Network error:", err);
       setError("Cannot connect to the server.");
     }
   };

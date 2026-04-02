@@ -20,7 +20,6 @@ body {
   gap: 2rem; /* This creates a relative gap between header and main */
 }
 
-<<<<<<< HEAD
 
 .header {
   display: flex;
@@ -28,8 +27,7 @@ body {
   align-items: center;
   text-align: center;
   gap: 15px;
-
-=======
+}
 /* 1. The main header container */
 .header {
   display: flex;
@@ -66,7 +64,6 @@ body {
   z-index: 50; /* Forces the button to stay on top of everything else! */
   top: 80px;    
   right: -100px;   
->>>>>>> 567527b32a09cdbfcc4a0ef94728b4779331a786
 }
 
 .logo {
