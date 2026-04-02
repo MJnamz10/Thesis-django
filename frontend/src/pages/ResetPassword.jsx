@@ -33,7 +33,7 @@ export default function ResetPassword() {
 
     try {
       // 2. Send the new password + the URL tokens back to Django
-      const response = await fetch("http://127.0.0.1:8000/api/reset-password-confirm/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/reset-password-confirm/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

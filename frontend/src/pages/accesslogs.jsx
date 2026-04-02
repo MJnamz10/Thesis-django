@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
 // Added Calendar, Download, and Search icons from lucide-react
-import { UserPen, Calendar, Download, Search } from "lucide-react";
+import { UserPen, Calendar, Download, Search } from 'lucide-react';
+import AdminMenu from './AdminMenu.jsx';
 
 export default function AccessLogs() {
   const navigate = useNavigate();
@@ -193,129 +194,76 @@ export default function AccessLogs() {
     document.body.removeChild(link);
   };
 
-  return (
-    <div>
-      <img src="/images/logo.png" alt="logo" className="logo" />
-      <h1 className="school">
-        University of Science and Technology of Southern Philippines
-      </h1>
-
-      <div className="container1">
-        <div
-          className={
-            location.pathname === "/dashboard" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/dashboard")}
-        >
-          <img src="/images/Icon.png" className="icon1" alt="icon" />
-          Dashboard
+return (
+    <div className="page">
+      
+      {/* 1. Wrap the top row and nav inside the header! */}
+      <header className="header">
+        <div className="header-top-row">
+          <div className="header-left">
+            <img src="/images/logo.png" alt="logo" className="logo" />
+            <h1 className="school">
+              University of Science and Technology of Southern Philippines
+            </h1>
+          </div>
+ 
+          <div className="header-right">
+            <AdminMenu />
+          </div>
         </div>
-
-        <div
-          className={
-            location.pathname === "/accesslogs" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/accesslogs")}
-        >
-          <img src="/images/Icon (2).png" className="icon3" alt="icon" />
-          Access Logs
-        </div>
-
-        <div
-          className={
-            location.pathname === "/managestudentrecords"
-              ? "active-item"
-              : "item"
-          }
-          onClick={() => navigate("/managestudentrecords")}
-        >
-          <UserPen className="icon2" alt="icon" />
-          Manage Student Records
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="container2">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: "24px",
-          }}
-        >
-          <div>
-            <div
-              className="text1"
-              style={{ margin: 0, fontSize: "24px", fontWeight: "bold" }}
-            >
-              Access Logs
-            </div>
-            <div
-              className="text2"
-              style={{ margin: "4px 0 0 0", color: "gray" }}
-            >
-              Complete history of all access attempts
-            </div>
+ 
+        {/* Sidebar Navigation */}
+        <nav className="container1">
+          <div
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            onClick={() => navigate("/dashboard")}
+          >
+            <img src="/images/Icon.png" className="icon1" alt="icon" />
+            Dashboard
           </div>
 
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <button
-              onClick={handleTodayFilter}
-              style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1px solid #E4E7EC",
-                backgroundColor: "white",
-                cursor: "pointer",
-                fontWeight: "500",
-                color: "black",
-              }}
-            >
-              Today
-            </button>
+          <div
+            className={location.pathname === "/accesslogs" ? "active-item" : "item"}
+            onClick={() => navigate("/accesslogs")}
+          >
+            <img src="/images/Icon (2).png" className="icon3" alt="icon" />
+            Access Logs
+          </div>
+          <div
+            className={location.pathname === "/managestudentrecords" ? "active-item" : "item"}
+            onClick={() => navigate("/managestudentrecords")}
+          >
+            <UserPen className="icon2" alt="icon" />
+            Manage Student Records
+          </div>
+        </nav>
+      </header>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #E4E7EC",
-                borderRadius: "8px",
-                padding: "0 12px",
-                gap: "8px",
-              }}
-            >
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                style={{
-                  border: "none",
-                  backgroundColor: "transparent",
-                  padding: "8px 0",
-                  outline: "none",
-                  color: "#344054",
-                  fontFamily: "inherit",
-                }}
-              />
-              {selectedDate && (
-                <button
-                  onClick={clearDateFilter}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "#667085",
-                    fontWeight: "600",
-                  }}
-                >
-                  Clear
-                </button>
-              )}
+      {/* Main Content Area */}
+      <main className="main">
+        <div className="container2">
+          
+          {/* --- Top Header Row: Titles + Date/Export Filters --- */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+            <div>
+              <div className="text1" style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>Access Logs</div>
+              <div className="text2" style={{ margin: '4px 0 0 0', color: 'gray' }}>Complete history of all access attempts</div>
             </div>
+            
+            {/* Top Right Filters */}
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <button style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500' }}>
+                Today
+              </button>
+              
+              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F9FAFB', border: '1px solid #E4E7EC', borderRadius: '8px', padding: '0 12px' }}>
+                <input 
+                  type="date" 
+                  style={{ border: 'none', backgroundColor: 'transparent', padding: '8px 0', outline: 'none', color: '#344054', fontFamily: 'inherit' }} 
+                />
+              </div>
 
-            <button
+              <button
               onClick={exportToCSV}
               style={{
                 display: "flex",
@@ -330,10 +278,10 @@ export default function AccessLogs() {
                 color: "black",
               }}
             >
-              <Download size={16} /> Export CSV
-            </button>
+                <Download size={16} /> Export CSV
+              </button>
+            </div>
           </div>
-        </div>
 
         <div
           style={{

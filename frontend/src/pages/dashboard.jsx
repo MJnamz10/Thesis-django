@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/dashboard.css";
-import { UserPen, LogOut } from "lucide-react";
+import { UserPen } from "lucide-react";
+import AdminMenu from './AdminMenu.jsx';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -78,24 +78,25 @@ export default function Dashboard() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
-
-    navigate("/");
-  };
-
   return (
     <div className="page">
       <header className="header">
-        <img src="/images/logo.png" alt="logo" className="logo" />
-        <h1 className="school">
-          University of Science and Technology of Southern Philippines
-        </h1>
+        
+        {/* Top Row: Logo/Text on left, Admin Menu on right */}
+        <div className="header-top-row">
+          <div className="header-left">
+            <img src="/images/logo.png" alt="logo" className="logo" />
+            <h1 className="school">
+              University of Science and Technology of Southern Philippines
+            </h1>
+          </div>
 
+          <div className="header-right">
+            <AdminMenu />
+          </div>
+        </div>
+
+        {/* Navigation Bar */}
         <nav className="container1">
           <div
             className={
@@ -108,9 +109,7 @@ export default function Dashboard() {
           </div>
 
           <div
-            className={
-              location.pathname === "/accesslogs" ? "active-item" : "item"
-            }
+            className={location.pathname === "/accesslogs" ? "active-item" : "item"}
             onClick={() => navigate("/accesslogs")}
           >
             <img src="/images/Icon (2).png" className="icon3" alt="icon" />
@@ -118,25 +117,13 @@ export default function Dashboard() {
           </div>
 
           <div
-            className={
-              location.pathname === "/managestudentrecords"
-                ? "active-item"
-                : "item"
-            }
+            className={location.pathname === "/managestudentrecords" ? "active-item" : "item"}
             onClick={() => navigate("/managestudentrecords")}
           >
             <UserPen className="icon2" />
             Manage Student Records
           </div>
-
-          <div
-            className="item"
-            onClick={handleLogout}
-            style={{ color: "#dc2626", fontWeight: "bold" }}
-          >
-            <LogOut size={16} style={{ marginRight: "6px" }} />
-            Logout
-          </div>
+        
         </nav>
       </header>
 

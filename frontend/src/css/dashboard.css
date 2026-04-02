@@ -20,6 +20,7 @@ body {
   gap: 2rem; /* This creates a relative gap between header and main */
 }
 
+<<<<<<< HEAD
 
 .header {
   display: flex;
@@ -28,6 +29,44 @@ body {
   text-align: center;
   gap: 15px;
 
+=======
+/* 1. The main header container */
+.header {
+  display: flex;
+  flex-direction: column; /* Stacks the top row and the nav bar on top of each other */
+  width: 100%;
+  padding-top: 15px; 
+}
+
+/* 2. The new row that holds the Logo and the Admin Button */
+.header-top-row {
+  display: flex;
+  justify-content: space-between; /* Pushes Logo left, Admin Button right */
+  align-items: flex-start;
+  width: 100%;
+  padding: 0 40px; /* Gives nice breathing room on the left and right edges */
+  box-sizing: border-box;
+  margin-bottom: 20px; /* Space between this row and the nav bar */
+}
+
+/* 3. The left side (Logo and School Name) */
+.header-left {
+  display: flex;
+  flex-direction: column; /* Keeps the school name directly under the logo */
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* 4. The right side (Admin Button) */
+.header-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  z-index: 50; /* Forces the button to stay on top of everything else! */
+  top: 80px;    
+  right: -100px;   
+>>>>>>> 567527b32a09cdbfcc4a0ef94728b4779331a786
 }
 
 .logo {

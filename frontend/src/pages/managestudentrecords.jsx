@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
+import AdminMenu from "./AdminMenu.jsx";
 // Added 'Users' and 'Hash' icons for Gender and Age!
 import {
   UserPen,
@@ -15,6 +16,7 @@ import {
   Users,
   Hash,
   Trash2,
+  Upload,
 } from "lucide-react";
 import AddStudentModal from "./AddStudentModal";
 
@@ -33,12 +35,56 @@ export default function ManageStudentRecords() {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [adminPassword, setAdminPassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
+const fileInputRef = useRef(null);
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
 
+const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 1. Package the file into a FormData object (required for sending files)
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // 2. Send it to Django!
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/bulk-import/`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+if (response.ok) {
+        if (data.errors && data.errors.length > 0) {
+          // This will pop up the exact reasons why Django rejected the rows!
+          alert(`${data.message}\n\nReasons for failure:\n${data.errors.slice(0, 5).join('\n')}`);
+          console.log("Full Error List:", data.errors);
+        } else {
+          alert(data.message);
+        }
+        refresh(); 
+      } else {
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      alert("Network error while trying to import the file.");
+    } finally {
+      // 3. Clear the input so the user can import the same file again if needed
+      e.target.value = null; 
+    }
+  };
+  
   // Updated helper function to generate initials
-  const getFullImageUrl = (path, fullName) => {
+const getFullImageUrl = (path, fullName) => {
     // 1. If they uploaded a real photo, always use it!
     if (path) {
-      return path.startsWith("http") ? path : `http://127.0.0.1:8000${path}`;
+      return path.startsWith("http") 
+        ? path 
+        : `${import.meta.env.VITE_API_BASE}${path}`;
     }
 
     // 2. If no photo, generate the initials!
@@ -51,6 +97,37 @@ export default function ManageStudentRecords() {
     // 3. Absolute fallback just in case a record has no name and no photo
     return "/images/default-avatar.png";
   };
+
+// 👉 NEW: Triggers the download of the CSV file from Django
+  const handleExportClick = async () => {
+    try {
+      // 1. Fetch the file from our new Django URL
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/export/csv/`, {
+        method: "GET",
+      });
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      // 2. Convert the response into a downloadable "Blob" (Binary Large Object)
+      const blob = await response.blob();
+
+      // 3. Create a temporary, invisible link in the browser to force the download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "VerifID_Student_Records.csv"; // The name of the file
+      
+      // 4. Click the invisible link, then clean it up!
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export student records. Is the server running?");
+    }
+  };  
 
   const handleEditClick = (student) => {
     setSelectedStudent(student);
@@ -90,7 +167,7 @@ export default function ManageStudentRecords() {
 
     try {
       // 1. Verify the password with Django first!
-      const verifyRes = await fetch("http://127.0.0.1:8000/api/verify-admin-password/", {
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/verify-admin-password/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword })
@@ -102,7 +179,7 @@ export default function ManageStudentRecords() {
       }
 
       // 2. If Django says the password is correct, delete the student!
-      const response = await fetch(`http://127.0.0.1:8000/api/students/${studentToDelete.id}/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/${studentToDelete.id}/`, {
         method: "DELETE",
       });
 
@@ -118,41 +195,46 @@ export default function ManageStudentRecords() {
       setDeleteError("Network error. Please check if the server is running.");
     }
   };
-  return (
-    <div>
-      <img src="/images/logo.png" alt="logo" className="logo" />
-      <h1 className="school">
-        University of Science and Technology of Southern Philippines
-      </h1>
-      <div className="container1">
-        <div
-          className={
-            location.pathname === "/dashboard" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/dashboard")}
-        >
-          <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
+return (
+    <div className="page">
+      
+      {/* 1. The Standardized Header */}
+      <header className="header">
+        <div className="header-top-row">
+          <div className="header-left">
+            <img src="/images/logo.png" alt="logo" className="logo" />
+            <h1 className="school">
+              University of Science and Technology of Southern Philippines
+            </h1>
+          </div>
+          
+          <div className="header-right">
+            <AdminMenu />
+          </div>
         </div>
-        <div
-          className={
-            location.pathname === "/accesslogs" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/accesslogs")}
-        >
-          <img src="/images/Icon (2).png" className="icon3" alt="icon" /> Access
-          Logs
-        </div>
-        <div
-          className={
-            location.pathname === "/managestudentrecords"
-              ? "active-item"
-              : "item"
-          }
-          onClick={() => navigate("/managestudentrecords")}
-        >
-          <UserPen className="icon2" alt="icon" /> Manage Student Records
-        </div>
-      </div>
+
+        {/* Navigation Bar */}
+        <nav className="container1">
+          <div
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            onClick={() => navigate("/dashboard")}
+          >
+            <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
+          </div>
+          <div
+            className={location.pathname === "/accesslogs" ? "active-item" : "item"}
+            onClick={() => navigate("/accesslogs")}
+          >
+            <img src="/images/Icon (2).png" className="icon3" alt="icon" /> Access Logs
+          </div>
+          <div
+            className={location.pathname === "/managestudentrecords" ? "active-item" : "item"}
+            onClick={() => navigate("/managestudentrecords")}
+          >
+            <UserPen className="icon2" alt="icon" /> Manage Student Records
+          </div>
+        </nav>
+      </header>
 
       <div className="container2">
         <div
@@ -182,7 +264,19 @@ export default function ManageStudentRecords() {
           </div>
 
           <div style={{ display: "flex", gap: "12px" }}>
-            <button
+            <input
+              type="file"
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              style={{ display: 'none' }}
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+
+            <button onClick={handleImportClick} className="export-button" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: '1px solid #E4E7EC', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500', color: '#1c398e' }}>
+              <Upload size={16} /> Import
+            </button>
+           <button
+              onClick={handleExportClick} 
               className="export-button"
               style={{
                 display: "flex",
@@ -326,13 +420,13 @@ export default function ManageStudentRecords() {
                       >
                         <Eye
                           size={18}
-                          style={{ cursor: "pointer", color: "#475467" }}
+                          style={{ cursor: "pointer", color: "#fbb316" }}
                           title="View Details"
                           onClick={() => setSelectedDetailStudent(student)}
                         />
                         <UserPen
                           size={18}
-                          style={{ cursor: "pointer", color: "#475467" }}
+                          style={{ cursor: "pointer", color: "#1c398e" }}
                           title="Edit Record"
                           onClick={() => handleEditClick(student)}
                         />

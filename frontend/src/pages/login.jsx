@@ -31,7 +31,7 @@ export default function Login() {
 
     try {
       // 1. Send the data to Django
-      const response = await fetch("http://127.0.0.1:8000/api/login/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,6 +52,7 @@ export default function Login() {
         const storage = rememberMe ? localStorage : sessionStorage;
         storage.setItem("access_token", data.access);
         storage.setItem("refresh_token", data.refresh);
+        localStorage.setItem("logged_in_email", email);
 
         // If they want to be remembered, save their email for next time
         if (rememberMe) {
