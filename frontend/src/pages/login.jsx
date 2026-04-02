@@ -56,6 +56,7 @@ export default function Login() {
         const storage = rememberMe ? localStorage : sessionStorage;
         storage.setItem("access_token", data.access);
         storage.setItem("refresh_token", data.refresh);
+        localStorage.setItem("logged_in_email", email);
 
         // If they want to be remembered, save their email for next time
         if (rememberMe) {

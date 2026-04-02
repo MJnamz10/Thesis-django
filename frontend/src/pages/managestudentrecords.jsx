@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
+import AdminMenu from "./AdminMenu.jsx";
 // Added 'Users' and 'Hash' icons for Gender and Age!
 import {
   UserPen,
@@ -78,10 +79,12 @@ if (response.ok) {
   };
   
   // Updated helper function to generate initials
-  const getFullImageUrl = (path, fullName) => {
+const getFullImageUrl = (path, fullName) => {
     // 1. If they uploaded a real photo, always use it!
     if (path) {
-      return path.startsWith("http") ? path : `http://127.0.0.1:8000${path}`;
+      return path.startsWith("http") 
+        ? path 
+        : `${import.meta.env.VITE_API_BASE}${path}`;
     }
 
     // 2. If no photo, generate the initials!
@@ -192,41 +195,46 @@ if (response.ok) {
       setDeleteError("Network error. Please check if the server is running.");
     }
   };
-  return (
-    <div>
-      <img src="/images/logo.png" alt="logo" className="logo" />
-      <h1 className="school">
-        University of Science and Technology of Southern Philippines
-      </h1>
-      <div className="container1">
-        <div
-          className={
-            location.pathname === "/dashboard" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/dashboard")}
-        >
-          <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
+return (
+    <div className="page">
+      
+      {/* 1. The Standardized Header */}
+      <header className="header">
+        <div className="header-top-row">
+          <div className="header-left">
+            <img src="/images/logo.png" alt="logo" className="logo" />
+            <h1 className="school">
+              University of Science and Technology of Southern Philippines
+            </h1>
+          </div>
+          
+          <div className="header-right">
+            <AdminMenu />
+          </div>
         </div>
-        <div
-          className={
-            location.pathname === "/accesslogs" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/accesslogs")}
-        >
-          <img src="/images/Icon (2).png" className="icon3" alt="icon" /> Access
-          Logs
-        </div>
-        <div
-          className={
-            location.pathname === "/managestudentrecords"
-              ? "active-item"
-              : "item"
-          }
-          onClick={() => navigate("/managestudentrecords")}
-        >
-          <UserPen className="icon2" alt="icon" /> Manage Student Records
-        </div>
-      </div>
+
+        {/* Navigation Bar */}
+        <nav className="container1">
+          <div
+            className={location.pathname === "/dashboard" ? "active-item" : "item"}
+            onClick={() => navigate("/dashboard")}
+          >
+            <img src="/images/Icon.png" className="icon1" alt="icon" /> Dashboard
+          </div>
+          <div
+            className={location.pathname === "/accesslogs" ? "active-item" : "item"}
+            onClick={() => navigate("/accesslogs")}
+          >
+            <img src="/images/Icon (2).png" className="icon3" alt="icon" /> Access Logs
+          </div>
+          <div
+            className={location.pathname === "/managestudentrecords" ? "active-item" : "item"}
+            onClick={() => navigate("/managestudentrecords")}
+          >
+            <UserPen className="icon2" alt="icon" /> Manage Student Records
+          </div>
+        </nav>
+      </header>
 
       <div className="container2">
         <div
