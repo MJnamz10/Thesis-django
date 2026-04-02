@@ -49,7 +49,7 @@ const handleFileChange = async (e) => {
 
     try {
       // 2. Send it to Django!
-      const response = await fetch("http://127.0.0.1:8000/api/students/bulk-import/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/bulk-import/`, {
         method: "POST",
         body: formData,
       });
@@ -99,7 +99,7 @@ if (response.ok) {
   const handleExportClick = async () => {
     try {
       // 1. Fetch the file from our new Django URL
-      const response = await fetch("http://127.0.0.1:8000/api/students/export/csv/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/export/csv/`, {
         method: "GET",
       });
 
@@ -164,7 +164,7 @@ if (response.ok) {
 
     try {
       // 1. Verify the password with Django first!
-      const verifyRes = await fetch("http://127.0.0.1:8000/api/verify-admin-password/", {
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/verify-admin-password/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword })
@@ -176,7 +176,7 @@ if (response.ok) {
       }
 
       // 2. If Django says the password is correct, delete the student!
-      const response = await fetch(`http://127.0.0.1:8000/api/students/${studentToDelete.id}/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/${studentToDelete.id}/`, {
         method: "DELETE",
       });
 
@@ -412,13 +412,13 @@ if (response.ok) {
                       >
                         <Eye
                           size={18}
-                          style={{ cursor: "pointer", color: "#475467" }}
+                          style={{ cursor: "pointer", color: "#fbb316" }}
                           title="View Details"
                           onClick={() => setSelectedDetailStudent(student)}
                         />
                         <UserPen
                           size={18}
-                          style={{ cursor: "pointer", color: "#475467" }}
+                          style={{ cursor: "pointer", color: "#1c398e" }}
                           title="Edit Record"
                           onClick={() => handleEditClick(student)}
                         />
