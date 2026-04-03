@@ -8,7 +8,7 @@ class CameraService:
         self.camera_index = CAMERA_INDEX
 
     def start(self):
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
 
         if not self.cap.isOpened():
             return False
