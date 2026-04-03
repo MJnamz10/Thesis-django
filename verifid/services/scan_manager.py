@@ -32,6 +32,20 @@ class ScanManager:
 
         parsed = scan["parsed"]
 
+        if not parsed.get("id"):
+            print("[SCAN_MANAGER] No ID found in QR data")
+            return {
+                "parsed": parsed,
+                "decoded_text": scan["decoded_text"],
+                "decoded_stage": scan.get("decoded_stage", "UNKNOWN"),
+                "verification": {
+                    "status": "invalid",
+                    "student": None,
+                    "reason": "invalid_qr",
+                    "mismatches": {},
+                },
+            }
+
         qr_data = {
             "id": (parsed.get("id") or "").strip(),
             "name": (parsed.get("name") or "").strip(),
@@ -48,34 +62,6 @@ class ScanManager:
             "parsed": parsed,
             "decoded_text": decoded_text,
             "decoded_stage": scan.get("decoded_stage", "UNKNOWN"),
-            "verification": verification,
-        }
-
-    def process_manual_id(self, typed_id: str):
-        typed_id = (typed_id or "").strip()
-        if not typed_id:
-            return None
-
-        parsed = {
-            "id": typed_id,
-            "name": "",
-            "course": "",
-        }
-
-        qr_data = {
-            "id": typed_id,
-            "name": "",
-            "course": "",
-            "gate": "Main Gate",
-            "qr_payload": f"Manual ID Search: {typed_id}",
-        }
-
-        verification = self.api.verify_student(qr_data)
-
-        return {
-            "parsed": parsed,
-            "decoded_text": f"Manual ID Search: {typed_id}",
-            "decoded_stage": "MANUAL",
             "verification": verification,
         }
 

@@ -147,7 +147,21 @@ class DetectionWorker(QObject):
                 print(f"[WORKER] Decoded text: {decoded_text}")
 
                 parsed = self._parse_qr_payload(decoded_text)
+
                 if not parsed:
+                    parsed = {
+                        "id": "",
+                        "name": "",
+                        "course": "",
+                    }
+
+                    scans.append({
+                        "parsed": parsed,
+                        "decoded_text": decoded_text,
+                        "decoded_stage": decode_result["stage"],
+                        "invalid": True,
+                    })
+
                     continue
 
                 scans.append({

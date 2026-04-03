@@ -2,7 +2,7 @@ import cv2
 import requests
 
 # 🔥 CHANGE THIS TO YOUR LAPTOP IP
-SERVER_URL = "http://10.0.0.60:8000/detect/"
+SERVER_URL = "http://192.168.1.18:8000/detect/"
 
 
 class RemoteDetector:

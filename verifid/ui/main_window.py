@@ -67,6 +67,8 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.apply_styles()
 
+        self.start_camera() # Auto-start camera on launch
+
         self.clock_timer = QTimer(self)
         self.clock_timer.timeout.connect(self.update_clock)
         self.clock_timer.start(1000)
@@ -130,6 +132,7 @@ class MainWindow(QMainWindow):
         header_lay.addStretch(1)
 
         self.clock_box = QFrame()
+        self.clock_box.setFixedSize(150, 50)
         self.clock_box.setObjectName("clockBox")
 
         clock_lay = QVBoxLayout(self.clock_box)
@@ -299,13 +302,6 @@ class MainWindow(QMainWindow):
     ):
         self.table.insertRow(0)
 
-        if year_level == 1: ordinal_indicator = "st"
-        elif year_level == 2: ordinal_indicator = "nd"
-        elif year_level == 3: ordinal_indicator = "rd"
-        else: ordinal_indicator = "th"
-
-        yr_level = str(year_level) + ordinal_indicator + " Year"
-
         # Student photo
         photo_widget = StudentPhotoCell(image_path=image_path)
         self.table.setCellWidget(0, 0, photo_widget)
@@ -313,6 +309,20 @@ class MainWindow(QMainWindow):
         # Name + ID
         name_id_widget = TwoLineCell(name, sid)
         self.table.setCellWidget(0, 1, name_id_widget)
+
+        #formatting year level
+        if str(year_level).strip().upper() == "N/A" or str(year_level).strip() == "":
+            yr_level = "N/A"
+        else:
+            try:
+                if year_level == 1: ordinal_indicator = "st"
+                elif year_level == 2: ordinal_indicator = "nd"
+                elif year_level == 3: ordinal_indicator = "rd"
+                else: ordinal_indicator = "th"
+                
+                yr_level = str(year_level) + ordinal_indicator + " Year"
+            except (ValueError, TypeError):
+                yr_level = str(year_level)  # fallback to raw value if formatting fails
 
         # Program + Year
         prog_year_widget = TwoLineCell(program, yr_level)
@@ -451,18 +461,16 @@ class MainWindow(QMainWindow):
             now = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
 
         db_student = result.get("student")
-        status = result.get("status", "denied")
+        status = result.get("status", "invalid")
 
         if db_student:
-            display_sid = str(db_student.get("id_number") or parsed["id"] or "-")
-            display_name = db_student.get("full_name") or "Unknown"
-            display_prog = db_student.get("program") or "Unknown"
-            
-            # Formatting year level
-            y_lvl = db_student.get('year_level', '-')
-            display_year = f"{y_lvl}" #+ ("th Year" if str(y_lvl).isdigit() else "")
+            display_sid = str(db_student.get("id_number") or parsed.get("id") or "N/A")
+            display_name = db_student.get("full_name") or "N/A"
+            display_prog = db_student.get("program") or "N/A"
+            display_year = db_student.get('year_level') or "N/A"
 
             image_path = self.resolve_student_image_path(db_student)
+
             if status == "verified":
                 status_text = "Verified"
             elif status == "not_verified":
@@ -471,8 +479,10 @@ class MainWindow(QMainWindow):
                 status_text = "Invalid"
         else:
             # --- Logic for Student Not in Masterlist ---
+            decoded_text = scan.get("decoded_text", "")
+
             display_name = "N/A"
-            display_sid = parsed["id"] or "N/A"
+            display_sid = decoded_text[:15] if decoded_text else "N/A"
             display_prog = "N/A"
             display_year = "N/A"
             image_path = None        # No image will be displayed
@@ -488,19 +498,7 @@ class MainWindow(QMainWindow):
             status_text,
             image_path=image_path,
         )
-
-    def search_typed_id(self):
-        typed_id = self.id_input.text().strip()
-        if not typed_id:
-            print("Please enter an ID number.")
-            return
-
-        result = self.scan_manager.process_manual_id(typed_id)
-        if result:
-            self.handle_scan_result(result)
-
-        self.id_input.clear()
-
+    
     def send_heartbeat(self):
         try:
             self.api.send_heartbeat()
@@ -665,8 +663,8 @@ class MainWindow(QMainWindow):
         QPushButton#secondaryBtn { background: #e5e7eb; color: #111827; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
         QPushButton#secondaryBtn:hover { background: #d1d5db; }
         QLineEdit#idInput { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 12px; }
-        QLabel#footnote { font-size: 15px; font-weight: 700; color: #1b194d; }
-        QLabel#footnote2 { font-size: 15px; font-weight: 700; color: #D4183D;}
+        QLabel#footnote { font-size: 18px; font-weight: 700; color: #1b194d; }
+        QLabel#footnote2 { font-size: 18px; font-weight: 700; color: #D4183D;}
         QFrame#tableWrap {
             background: #ffffff;
             border: 2px solid #cfd5df;

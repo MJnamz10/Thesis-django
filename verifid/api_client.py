@@ -54,7 +54,7 @@ class APIClient:
 
         try:
             student = result.get("student")
-            status = result.get("status", "denied")
+            status = result.get("status", "invalid")
             reason = result.get("reason")
 
             id_number = qr_data.get("id") or None
@@ -188,7 +188,7 @@ class APIClient:
 
         if not scanned_id:
             result = {
-                "status": "denied",
+                "status": "invalid",
                 "student": None,
                 "reason": "missing_id",
                 "mismatches": {},
@@ -198,7 +198,7 @@ class APIClient:
 
         if self.conn is None:
             result = {
-                "status": "denied",
+                "status": "invalid",
                 "student": None,
                 "reason": "database_not_connected",
                 "mismatches": {},
@@ -220,7 +220,7 @@ class APIClient:
 
             if not student:
                 result = {
-                    "status": "denied",
+                    "status": "invalid",
                     "student": None,
                     "reason": "student_not_found",
                     "mismatches": {},
@@ -255,7 +255,7 @@ class APIClient:
                 pass
 
             result = {
-                "status": "denied",
+                "status": "invalid",
                 "student": None,
                 "reason": "database_error",
                 "mismatches": {},
