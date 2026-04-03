@@ -227,10 +227,20 @@ class APIClient:
                 }
                 self.save_scan_log(qr_data, result)
                 return result
+            
+            student_dict = dict(student)
+            validity = str(student_dict.get("validity_status") or "").strip().lower()
+
+            if validity == "verified":
+                status = "verified"
+            elif validity == "not_verified":
+                status = "not_verified"
+            else:
+                status = "invalid"
 
             result = {
-                "status": "granted",
-                "student": dict(student),
+                "status": status,
+                "student": student_dict,
                 "reason": None,
                 "mismatches": {},
             }
