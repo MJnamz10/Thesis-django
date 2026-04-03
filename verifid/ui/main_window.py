@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import time
 import cv2
 import os
@@ -158,7 +159,7 @@ class MainWindow(QMainWindow):
 
         left_card, left_lay = create_card()
 
-        left_title = QLabel("QR Code Scanner - Main Gate")
+        left_title = QLabel("Multi-QR Code Scanner for Student Identification System")
         left_title.setContentsMargins(0, 0, 0, 0)
         left_title.setObjectName("cardTitle")
 
@@ -356,7 +357,21 @@ class MainWindow(QMainWindow):
 
             for row in reversed(rows):
                 created_at = row.get("created_at")
-                timestamp = created_at.strftime("%I:%M:%S %p").lstrip("0") if created_at else ""
+                #timestamp = created_at.strftime("%I:%M:%S %p").lstrip("0") if created_at else ""
+
+                if created_at:
+                    # 1. Make sure Python knows the original time is UTC
+                    # (Skip this line if your database already returns a timezone-aware datetime)
+                    if created_at.tzinfo is None:
+                        created_at = created_at.replace(tzinfo=datetime.timezone.utc)
+                    
+                    # 2. Convert to your desired local timezone
+                    local_time = created_at.astimezone(ZoneInfo("Asia/Manila"))
+                    
+                    # 3. Format the new local time
+                    timestamp = local_time.strftime("%I:%M:%S %p").lstrip("0")
+                else:
+                    timestamp = ""
 
                 sid = str(row.get("id_number") or "")
                 name = row.get("full_name") or ""
@@ -637,11 +652,11 @@ class MainWindow(QMainWindow):
 
     def apply_styles(self):
         self.setStyleSheet("""
-        QWidget#root { background: #DDE8EB; font-family: Arial; }
+        QWidget#root { background: #DDE8EB; font-family: "Inter"; }
         QSvgWidget#logoSvg { background: transparent; }
         QLabel#subtitle { font-size: 15px; color: #6b7280; }
         QFrame#card { background: white; border: 1px solid #e6ebf5; border-radius: 14px; }
-        QLabel#cardTitle { font-size: 15px; font-weight: 700; color: #281E5D; }
+        QLabel#cardTitle { font-size: 18px; font-weight: 700; color: #281E5D; }
         QLabel#cardDesc { font-size: 15px; color: #6b7280; }
         QLabel#preview { background: #101828; border: 1px solid #e6ebf5; border-radius: 12px; color: #6a7282; font-size: 15px; }
         QPushButton#primaryBtn { background: #fbb318; color: #0f0e54; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
