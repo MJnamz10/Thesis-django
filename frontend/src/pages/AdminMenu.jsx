@@ -53,7 +53,7 @@ export default function AdminMenu() {
         <User
           size={32}
           strokeWidth={2}
-          style={{ width: "32px", height: "32px", minWidth: "32px" }}
+          style={{ width: "32px", height: "30px", minWidth: "30px", color: "#FBB318" }}
         />
       </button>
 

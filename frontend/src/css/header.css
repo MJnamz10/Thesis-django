@@ -1,0 +1,206 @@
+/* --- Global Body Reset --- */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
+  font-family: "Arimo", sans-serif;
+}
+
+/* --- 1. Main Header Container --- */
+.header {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-top: 20px;
+  gap: 24px;
+  flex-shrink: 0;
+  background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  border-bottom: 6px solid #1c398e;
+}
+
+/* --- 2. Top Row --- */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+/* Logo */
+.header-left .logo {
+  width: clamp(140px, 12vw, 190px);
+  height: auto;
+}
+
+/* Middle: School Titles */
+.header-middle {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Pushes the clock to the right edge */
+  padding-left: 30px;
+}
+
+.campus-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ustp-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1c398e; /* The dark USTP Blue */
+  letter-spacing: -0.5px;
+}
+
+/* The glowing green dot */
+.online-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+.campus-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.wifi-icon,
+.scanner-status {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.separator {
+  color: #d1d5db;
+  margin: 0 4px;
+}
+
+.school-name {
+  color: #4b5563;
+  font-weight: 600;
+}
+
+/* Right: Clock & Admin */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.clock-pill {
+  display: flex;
+  align-items: center;
+  background-color: #fbb316; /* Bright Yellow/Orange */
+  padding: 12px 20px;
+  border-radius: 12px;
+  gap: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.clock-icon {
+  color: #1c398e;
+}
+
+.clock-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.time {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1c398e;
+  line-height: 1.1;
+}
+
+.date {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1c398e;
+}
+
+/* --- 3. Navigation Bar (The File Folder Tabs) --- */
+.container1 {
+width: 80%; 
+  max-width: 1700px;
+    margin: 0 auto;
+  height: 45px; /* Height of the tabs */
+
+  background-color: transparent;
+
+  display: flex;
+  align-items: flex-end; /* Pushes the tabs to sit flush on the bottom line */
+  gap: 0px; /* Tiny gap between the tabs */
+  padding: 0;
+  box-sizing: border-box;
+}
+.item,
+.active-item {
+  display: flex;
+  align-items: center;
+
+  /* 👉 Switched to center with a gap so the icon and text stay nicely grouped when squished */
+  justify-content: center;
+  gap: 12px;
+
+  padding: 0 20px;
+  border-radius: 12px 12px 0 0;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  flex: 2.5;
+  color: #1c398e;
+}
+
+/* ❌ INACTIVE Tabs (The Small Containers) */
+.item {
+  flex: 1;
+  background-color: #fce8b2;
+  height: 80%;
+  font-size: 16px;
+  color: #1c398e90;
+}
+.item:hover {
+  background-color: #fad570; /* Warms up the pale yellow */
+  color: #ffffff; /* Turns the text and icon dark blue! */
+  height: 90%; /* Gives it a satisfying "lift" toward the top */
+}
+
+/* 👉 THE MAGIC TRICK: Tells the tab to start small and grow! */
+@keyframes growActiveTab {
+  0% {
+    flex: 1;
+    height: 80%;
+    font-size: 16px;
+  }
+  100% {
+    flex: 1.7;
+    height: 100%;
+    font-size: 20px;
+  }
+}
+
+.active-item {
+  flex: 1.8;
+  height: 100%;
+  font-size: 20px;
+  background-color: #fbb316 !important;
+  color: #ffffff;
+  
+  animation: growActiveTab 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

@@ -6,11 +6,11 @@
 
 /* The Circular Button */
 .admin-avatar-btn {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background-color: #ffffff;
-  border: 1px solid #ffffff;
+  background-color: #0f0e54;
+  border: 1px solid #0f0e54;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -21,17 +21,17 @@
 
 /* Hover Effect for the button */
 .admin-avatar-btn:hover {
-  background-color: #e4e6eb;
-  transform: scale(1.05); /* Slight pop out */
+  background-color: rgb(86, 84, 255);
+  border: 1px solid rgb(86, 84, 255);
+  transform: scale(1.05); 
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
 
 /* The Dropdown Card */
 .admin-dropdown {
   position: absolute;
   top: 60px; /* Pushes it right below the button */
-  right: 0;  /* Aligns it to the right edge of the button */
+  right: 0; /* Aligns it to the right edge of the button */
   width: 240px;
   background-color: white;
   border-radius: 12px;
@@ -96,12 +96,12 @@
 
 /* Smooth pop-in animation */
 @keyframes slideDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -1,199 +1,65 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+.container2MSR {
+  display: flex;
+  flex-direction: column; 
+  padding: 30px;          
+  box-sizing: border-box; 
+  
   width: 100%;
-  overflow: hidden; /* hides scrolling */
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* center vertically */
-  align-items: center; /* center horizontally */
-  background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
-}
-.logo {
-  width: 185px;
-  height: auto;
-  position: absolute;
-  bottom: auto;
-  left: 50px;
-  top: 15px;
-}
-.school {
-  font-family: "Arimo", sans-serif;
-  font-weight: 700;
-  color: #4a5565;
-  position: absolute;
-  bottom: auto;
-  left: 80px;
-  top: 80px;
-  font-size: 16px;
-}
-.icon1,
-.icon2,
-.icon3 {
-  width: 15px;
-  height: auto;
-  margin-right: 5px; /* use spacing, not position */
-  position: relative;
-  bottom: 1px;
-}
-.icon6 {
-  width: 15px;
-  height: auto;
-  margin-right: 6px; /* use spacing, not position */
-  position: relative;
-  bottom: 1px;
-}
-.container1 {
-  display: flex;
-  width: 1360px;
-  border-radius: 50px;
-  text-align: center;
-  justify-content: center;
-  background-color: #efefef;
-  padding: 8px;
-  height: 20px; /* increase height */
-  position: absolute;
-  top: 150px;
-  font-family: "Arimo", sans-serif;
-  left: 75px;
-}
-.item,
-.active-item {
-  width: 860px;
-  height: 25px; /* SAME HEIGHT */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50px;
-  font-size: 14px;
-  cursor: pointer;
-  position: relative;
-  bottom: 2px;
-}
-
-.active-item {
-  background-color: white;
-  position: relative;
-  bottom: 2px;
-}
-.container2 {
-  display: flex;
-  width: 1370px;
-  height: 740px; /* will be changed to dynamic later since number of data is not fixed */
+  flex: 1; /* Stretches to fill the screen */
+  min-height: 600px;
+  margin-top: 38px; /* Breathes comfortably below the header */
+  
   background-color: white;
   border-radius: 14px;
-  position: absolute;
-  top: 200px;
-  left: 80px;
-}
-.txt2 {
-  width: 800px;
-  height: 25px;
-  font-size: 14px;
-}
-/* "Add Student Record" button */
-.buttons .select-button1 {
-  background-color: #1c398e;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-radius: 10px;
-  height: 30px;
-  display: flex;
-  align-items: center;
+  border: 2px solid #e5e7eb;
 }
 
-.buttons .select-button1:hover {
-  background-color: #152b6d;
-}
-
-/* "Export CSV" button */
-.buttons1 .export-button {
-  color: #1c398e;
-  background-color: white;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-radius: 10px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  width: auto;
-}
-
-.buttons1 .select-button1:hover {
-  background-color: #f0f4ff; /* Very light blue tint on hover */
-}
-.export-icon {
-  color: black;
-  display: flex;
-  margin-right: auto;
-  width: 18px;
-  height: 18px;
-}
-
-.table {
-  color: black;
+/* --- TABLE CONTAINER --- */
+.table-containerMSR {
+  /* 👉 Removed the rigid 500px height and 95.5% width */
+  flex: 1; /* Automatically takes up all leftover vertical space */
   width: 100%;
-  border-collapse: collapse; /* Prevents double borders */
+  overflow-y: auto; /* Vertical scroll */
+  overflow-x: auto; /* 👉 Added horizontal scroll for small screens */
 }
 
-.table th {
+/* --- TABLE STYLING --- */
+.tableMSR {
+  width: 100%;
+  
+  /* 👉 Prevents the 10 columns from crushing together on an iPad/Laptop */
+  min-width: 1100px; 
+  
+  border-collapse: collapse;
   text-align: left;
-  padding: 12px 24px; /* The second value (24px) creates the gap between titles */
+  font-family: "Arimo", sans-serif;
+}
+
+.tableMSR th {
+  text-align: left;
+  padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
   color: #374151;
   border-bottom: 2px solid #e5e7eb;
+  
+  /* 👉 Keeps headers visible when scrolling down */
+  position: sticky;
+  top: 0;
+  background-color: white; 
+  z-index: 1;
 }
-.table td {
+
+.tableMSR td {
   padding: 12px 24px;
 }
-.table-container {
+.table-containerMSR {
   width: 95.5%;
   height: 500px; /* Adjust as needed */
   overflow-y: auto; /* Enables vertical scrolling */
   overflow-x: hidden;
 }
-/* 1. Define the overall width of the scrollbar */
-::-webkit-scrollbar {
-  width: 16px; /* Adjust width to fit the arrow size */
-}
 
-/* 2. Change ONLY the track color (The background) */
-::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Replace with your desired color */
-}
-
-/* 3. The Draggable Handle (Thumb) */
-::-webkit-scrollbar-thumb {
-  background: #888; 
-  border-radius: 10px;
-  border: 3px solid #f1f1f1; /* Keeps the thumb "floating" in the track */
-}
-
-/* 4. EXPLICITLY keep the buttons (Arrows) */
-::-webkit-scrollbar-button {
-  display: block;
-  background-color: #f1f1f1; /* Color of the arrow box */
-  background-repeat: no-repeat;
-  background-size: 50%;
-  background-position: center;
-}
-
-/* Up Arrow */
-::-webkit-scrollbar-button:single-button:vertical:decrement {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='grey'><polygon points='50,00 0,100 100,100'/></svg>");
-}
-
-/* Down Arrow */
-::-webkit-scrollbar-button:single-button:vertical:increment {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='grey'><polygon points='0,0 100,0 50,100'/></svg>");
-}
 .student-photo-thumbnail {
   width: 100px;
   height: 100px;
@@ -216,4 +82,77 @@ body {
   color: #9ca3af;
   border: 1px dashed #d1d5db;
   text-align: center;
+}
+.export-button {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #E4E7EC;
+  background-color: white;
+  color: #0f0e54;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-button:hover {
+  background-color: #0f0e54;
+  border-color: #0f0e54;
+  color: white;
+}
+
+.export-button:active {
+  transform: scale(0.96);
+}
+
+.add-student-btn {
+  height: 40px; /* 👉 Perfectly matches the Export button height! */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #0f0e54;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 👉 A rich, darker blue for the hover effect */
+.add-student-btn:hover {
+  background-color: #0f0e54; 
+}
+
+.add-student-btn:active {
+  transform: scale(0.96);
+}
+.close-btn {
+  height: 40px;
+  display: absolute;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #0f0e54;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #0f0e54; 
+}
+
+.close-btn:active {
+  transform: scale(0.96);
 }
