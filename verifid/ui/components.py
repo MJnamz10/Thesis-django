@@ -12,12 +12,12 @@ def create_card():
 
     lay = QVBoxLayout(f)
     lay.setContentsMargins(18, 18, 18, 18)
-    lay.setSpacing(12)
+    lay.setSpacing(3)
     return f, lay
 
 
 class TwoLineCell(QWidget):
-    def __init__(self, top: str, bottom: str, top_center=False):
+    def __init__(self, top: str, bottom: str, top_center=True):
         super().__init__()
         self.setObjectName("twoLineCell")
 
@@ -51,11 +51,16 @@ class TwoLineCell(QWidget):
 
 class StatusPill(QLabel):
     def __init__(self, text: str):
-        super().__init__((text or "").lower())
+        super().__init__((text or "").upper())
         self.setAlignment(Qt.AlignCenter)
 
         t = (text or "").lower().strip()
-        self.setObjectName("pillGranted" if t == "granted" else "pillDenied")
+        if t == "verified":
+            self.setObjectName("statusVerified")
+        elif t == "not verified":
+            self.setObjectName("statusNotVerified")
+        else:
+            self.setObjectName("statusInvalid")
         self.setMinimumWidth(82)
         self.setFixedHeight(26)
 

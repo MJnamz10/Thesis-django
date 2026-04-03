@@ -124,20 +124,24 @@ class MainWindow(QMainWindow):
         content = QWidget()
         content_lay = QHBoxLayout(content)
         content_lay.setContentsMargins(0, 0, 0, 0)
-        content_lay.setSpacing(14)
+        content_lay.setSpacing(12)
 
         left_card, left_lay = create_card()
 
         left_title = QLabel("QR Code Scanner - Main Gate")
+        left_title.setContentsMargins(0, 0, 0, 0)
         left_title.setObjectName("cardTitle")
 
         left_desc = QLabel("Scan student QR codes for campus entry verification")
+        left_desc.setContentsMargins(0, 0, 0, 0)
         left_desc.setObjectName("cardDesc")
 
         self.preview = QLabel("Camera Preview")
         self.preview.setAlignment(Qt.AlignCenter)
+        #self.preview.setAlignment(Qt.AlignTop)
         self.preview.setObjectName("preview")
-        self.preview.setMinimumHeight(420)
+        #self.preview.setMinimumHeight(540)
+        self.preview.setFixedSize(720, 540)
         self.preview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.btn_camera = QPushButton("Open Camera")
@@ -145,26 +149,34 @@ class MainWindow(QMainWindow):
         self.btn_camera.setObjectName("primaryBtn")
         self.btn_camera.clicked.connect(self.toggle_camera)
 
-        self.id_input = QLineEdit()
-        self.id_input.setPlaceholderText("Enter ID number")
-        self.id_input.setObjectName("idInput")
-        self.id_input.returnPressed.connect(self.search_typed_id)
+        #self.id_input = QLineEdit()
+        #self.id_input.setPlaceholderText("Enter ID number")
+        #self.id_input.setObjectName("idInput")
+        #self.id_input.returnPressed.connect(self.search_typed_id)
 
-        self.btn_test = QPushButton("Search ID")
-        self.btn_test.setCursor(Qt.PointingHandCursor)
-        self.btn_test.setObjectName("secondaryBtn")
-        self.btn_test.clicked.connect(self.search_typed_id)
+        #self.btn_test = QPushButton("Search ID")
+        #self.btn_test.setCursor(Qt.PointingHandCursor)
+        #self.btn_test.setObjectName("secondaryBtn")
+        #self.btn_test.clicked.connect(self.search_typed_id)
 
-        self.foot = QLabel("Threaded preview mode: smooth UI + background detection")
+        self.foot = QLabel("PLEASE SHOW YOUR SCHOOL ID HERE.")
+        self.foot.setAlignment(Qt.AlignCenter)
+        self.foot.setContentsMargins(0, 12, 0, 0)
         self.foot.setObjectName("footnote")
+
+        self.foot2 = QLabel("AVOID COVERING THE QR CODE.")
+        self.foot2.setAlignment(Qt.AlignCenter)
+        self.foot2.setContentsMargins(0, 2, 0, 0)
+        self.foot2.setObjectName("footnote2")
 
         left_lay.addWidget(left_title)
         left_lay.addWidget(left_desc)
         left_lay.addWidget(self.preview)
         left_lay.addWidget(self.btn_camera)
-        left_lay.addWidget(self.id_input)
-        left_lay.addWidget(self.btn_test)
+        #left_lay.addWidget(self.id_input)
+        #left_lay.addWidget(self.btn_test)
         left_lay.addWidget(self.foot)
+        left_lay.addWidget(self.foot2)
 
         right_card, right_lay = create_card()
 
@@ -183,7 +195,7 @@ class MainWindow(QMainWindow):
 
         self.table = QTableWidget(0, 5)
         self.table.setObjectName("table")
-        self.table.setHorizontalHeaderLabels(["Student", "Name & ID No.", "Program & Year", "Time", "Status"])
+        self.table.setHorizontalHeaderLabels(["Student", "Name & ID No.", "Program & Year", "Time", "Validity"])
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setSelectionMode(QTableWidget.NoSelection)
@@ -191,11 +203,11 @@ class MainWindow(QMainWindow):
         self.table.setFocusPolicy(Qt.NoFocus)
         self.table.setAlternatingRowColors(False)
 
-        self.table.setColumnWidth(0, 120)    # photo
-        self.table.setColumnWidth(1, 230)   # name + id
-        self.table.setColumnWidth(2, 150)   # program + year
-        self.table.setColumnWidth(3, 110)    # time
-        self.table.setColumnWidth(4, 110)    # status
+        self.table.setColumnWidth(0, 120)   # photo
+        self.table.setColumnWidth(1, 250)   # name + id
+        self.table.setColumnWidth(2, 140)   # program + year
+        self.table.setColumnWidth(3, 100)   # time
+        self.table.setColumnWidth(4, 100)   # status
 
         table_wrap_lay.addWidget(self.table)
 
@@ -219,6 +231,13 @@ class MainWindow(QMainWindow):
     ):
         self.table.insertRow(0)
 
+        if year_level == 1: ordinal_indicator = "st"
+        elif year_level == 2: ordinal_indicator = "nd"
+        elif year_level == 3: ordinal_indicator = "rd"
+        else: ordinal_indicator = "th"
+
+        yr_level = str(year_level) + ordinal_indicator + "Year"
+
         # Student photo
         photo_widget = StudentPhotoCell(image_path=image_path)
         self.table.setCellWidget(0, 0, photo_widget)
@@ -228,12 +247,14 @@ class MainWindow(QMainWindow):
         self.table.setCellWidget(0, 1, name_id_widget)
 
         # Program + Year
-        prog_year_widget = TwoLineCell(program, year_level)
+        prog_year_widget = TwoLineCell(program, yr_level)
         self.table.setCellWidget(0, 2, prog_year_widget)
 
         # Time
-        time_widget = TwoLineCell(timestamp, "", top_center=True)
-        time_widget.bottom.hide()
+        #time_widget = TwoLineCell(timestamp, "", top_center=True)
+        #time_widget.bottom.hide()
+        time_widget = TwoLineCell("", timestamp)
+        time_widget.top.hide()
         self.table.setCellWidget(0, 3, time_widget)
 
         # Status
@@ -243,7 +264,6 @@ class MainWindow(QMainWindow):
         status_lay.setAlignment(Qt.AlignCenter)
         status_lay.addWidget(StatusPill(status_text))
         self.table.setCellWidget(0, 4, status_wrap)
-
         self.table.setRowHeight(0, 120)
 
         if self.table.rowCount() > 200:
@@ -275,7 +295,13 @@ class MainWindow(QMainWindow):
                 name = row.get("full_name") or ""
                 program = row.get("program") or ""
                 year_level = str(row.get("year_level") or "")
-                status_text = row.get("status") or "denied"
+                status = row.get("status") or ""
+                if status.lower() == "verified":
+                    status_text = "Verified"
+                elif status.lower() == "not_verified":
+                    status_text = "Not Verified"
+                else:             
+                    status_text = "Invalid"
 
                 # get student again for image
                 student = self.api.get_student_by_id(sid)
@@ -355,7 +381,12 @@ class MainWindow(QMainWindow):
             display_year = f"{y_lvl}" + ("th Year" if str(y_lvl).isdigit() else "")
 
             image_path = self.resolve_student_image_path(db_student)
-            status_text = "granted" if status == "granted" else "denied"
+            if status == "verified":
+                status_text = "Verified"
+            elif status == "not_verified":
+                status_text = "Not Verified"
+            else:
+                status_text = "Invalid"
         else:
             # --- Logic for Student Not in Masterlist ---
             display_name = "N/A"
@@ -405,11 +436,12 @@ class MainWindow(QMainWindow):
         if not ok:
             self.preview.setText("Camera not found.\nTry another CAMERA_INDEX in config.py")
             return
-
+        #self.preview.setAlignment(Qt.AlignTop)
         self.btn_camera.setText("Stop Camera")
         self.timer.start(30)
 
     def stop_camera(self):
+        #self.preview.setAlignment(Qt.AlignCenter)
         self.timer.stop()
         self.camera.stop()
         self.preview.setPixmap(QPixmap())
@@ -538,23 +570,24 @@ class MainWindow(QMainWindow):
 
     def apply_styles(self):
         self.setStyleSheet("""
-        QWidget#root { background: #f5f7fb; font-family: Arial; }
+        QWidget#root { background: #DDE8EB; font-family: Arial; }
         QSvgWidget#logoSvg { background: transparent; }
-        QLabel#subtitle { font-size: 11px; color: #6b7280; }
+        QLabel#subtitle { font-size: 15px; color: #6b7280; }
         QFrame#card { background: white; border: 1px solid #e6ebf5; border-radius: 14px; }
-        QLabel#cardTitle { font-size: 12px; font-weight: 700; color: #374151; }
-        QLabel#cardDesc { font-size: 11px; color: #6b7280; }
-        QLabel#preview { background: #f3f6fb; border: 1px solid #e6ebf5; border-radius: 12px; color: #94a3b8; font-size: 12px; }
-        QPushButton#primaryBtn { background: #111827; color: white; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
-        QPushButton#primaryBtn:hover { background: #0b1220; }
+        QLabel#cardTitle { font-size: 15px; font-weight: 700; color: #281E5D; }
+        QLabel#cardDesc { font-size: 15px; color: #6b7280; }
+        QLabel#preview { background: #101828; border: 1px solid #e6ebf5; border-radius: 12px; color: #6a7282; font-size: 15px; }
+        QPushButton#primaryBtn { background: #fbb318; color: #0f0e54; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
+        QPushButton#primaryBtn:hover { background: #0b1220; color: white; }
         QPushButton#primaryBtn:pressed { background: #000000; }
         QPushButton#secondaryBtn { background: #e5e7eb; color: #111827; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
         QPushButton#secondaryBtn:hover { background: #d1d5db; }
         QLineEdit#idInput { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 12px; }
-        QLabel#footnote { font-size: 10px; color: #9ca3af; }
+        QLabel#footnote { font-size: 15px; font-weight: 700; color: #363636; }
+        QLabel#footnote2 { font-size: 15px; font-weight: 700; color: #D4183D;}
         QFrame#tableWrap {
             background: #ffffff;
-            border: 1px solid #cfd5df;
+            border: 2px solid #cfd5df;
             border-radius: 12px;
             /* Prevent horizontal overflow */
             overflow: hidden; 
@@ -567,18 +600,26 @@ class MainWindow(QMainWindow):
         }
 
         QHeaderView::section {
-            background: transparent;
+            background: #1b194d;
             border: none;
             border-bottom: 1px solid #d7dbe2;
             padding: 8px 10px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            color: #3f3f46;
+            color: white;
+        }
+
+        QHeaderView::section:first {
+            border-top-left-radius: 12px;
+        }
+
+        QHeaderView::section:last {
+            border-top-right-radius: 12px; 
         }
 
         QTableWidget::item {
             border: none;
-            border-bottom: 1px solid #eceff3;
+            border-bottom: 2px solid #cfd5df;
             padding: 0px;
         }
 
@@ -589,9 +630,9 @@ class MainWindow(QMainWindow):
         }
 
         QWidget#twoLineCell QLabel#cellBottom {
-            font-size: 13px;
+            font-size: 14px;
             color: #111111;
-            margin-top: -1px;
+            margin-top: 2px;
         }
 
         QWidget#studentPhotoCell {
@@ -606,8 +647,8 @@ class MainWindow(QMainWindow):
             font-size: 8px;
         }
 
-        QLabel#pillGranted {
-            background: #22c55e;
+        QLabel#statusVerified {
+            background: #00a63e;
             color: white;
             border: none;
             border-radius: 12px;
@@ -615,8 +656,8 @@ class MainWindow(QMainWindow):
             font-size: 10px;
             font-weight: 700;
         }
-        QLabel#pillUnknown {
-            background: #6b7280; /* Gray color for unknown */
+        QLabel#statusNotVerified {
+            background: #d4183d;  /* REd color for not verified */
             color: white;
             border: none;
             border-radius: 12px;
@@ -625,8 +666,8 @@ class MainWindow(QMainWindow):
             font-weight: 700;
         }
 
-        QLabel#pillDenied {
-            background: #e11d48;
+        QLabel#statusInvalid {
+            background: #000000;  /* Black color for unknown */
             width: 100px;
             color: white;
             border: none;
