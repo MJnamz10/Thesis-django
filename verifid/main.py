@@ -1,10 +1,15 @@
 import sys
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 from ui.main_window import MainWindow
 
 
 def main():
     app = QApplication(sys.argv)
+
+    font = QFont("Inter")
+    app.setFont(font)
+    
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
