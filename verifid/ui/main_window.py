@@ -6,7 +6,7 @@ import os
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QPushButton, QLineEdit,
     QHBoxLayout, QVBoxLayout, QFrame, QTableWidget, QTableWidgetItem,
-    QSizePolicy
+    QSizePolicy, QToolButton
 )
 from PySide6.QtCore import Qt, QTimer, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
@@ -54,7 +54,6 @@ class MainWindow(QMainWindow):
         self.daily_refresh_timer.timeout.connect(self.check_for_new_day)
         self.daily_refresh_timer.start(60000)
 
-
         self.frame_counter = 0
         self.latest_detections = []
         self.latest_source_shape = None
@@ -66,6 +65,11 @@ class MainWindow(QMainWindow):
 
         self.setup_ui()
         self.apply_styles()
+
+        self.clock_timer = QTimer(self)
+        self.clock_timer.timeout.connect(self.update_clock)
+        self.clock_timer.start(1000)
+        self.update_clock()
 
         self.load_saved_logs()
 
@@ -79,7 +83,11 @@ class MainWindow(QMainWindow):
         self.worker.error.connect(self.on_worker_error)
 
         self.worker_thread.start()
-
+    
+    def update_clock(self):
+        now = datetime.now()
+        self.clock_time.setText(now.strftime("◴ %I:%M:%S %p").lstrip("0"))
+        self.clock_date.setText(now.strftime("%a, %b %d, %Y"))
 
     def check_for_new_day(self):
         today = datetime.now().date()
@@ -119,7 +127,29 @@ class MainWindow(QMainWindow):
         brand_lay.addWidget(subtitle)
         header_lay.addWidget(brand_col)
         header_lay.addStretch(1)
+
+        self.clock_box = QFrame()
+        self.clock_box.setObjectName("clockBox")
+
+        clock_lay = QVBoxLayout(self.clock_box)
+        clock_lay.setContentsMargins(10, 6, 10, 6)
+        clock_lay.setSpacing(0)
+
+        self.clock_time = QLabel("◴ --:--:-- --")
+        self.clock_time.setObjectName("clockTime")
+        self.clock_time.setAlignment(Qt.AlignCenter)
+
+        self.clock_date = QLabel("---")
+        self.clock_date.setObjectName("clockDate")
+        self.clock_date.setAlignment(Qt.AlignCenter)
+
+        clock_lay.addWidget(self.clock_time)
+        clock_lay.addWidget(self.clock_date)
+
+        header_lay.addWidget(self.clock_box)
+
         root_layout.addWidget(header)
+        #root_layout.addWidget(top_bar)
 
         content = QWidget()
         content_lay = QHBoxLayout(content)
@@ -180,11 +210,47 @@ class MainWindow(QMainWindow):
 
         right_card, right_lay = create_card()
 
+        #right_title = QLabel("Verification Result")
+        #right_title.setObjectName("cardTitle")
+
+        #right_desc = QLabel("Access decision and student information")
+        #right_desc.setObjectName("cardDesc")
+
+        right_top = QWidget()
+        right_top_lay = QHBoxLayout(right_top)
+        right_top_lay.setContentsMargins(0, 0, 0, 0)
+        right_top_lay.setSpacing(10)
+
+        title_block = QWidget()
+        title_block_lay = QVBoxLayout(title_block)
+        title_block_lay.setContentsMargins(0, 0, 0, 0)
+        title_block_lay.setSpacing(2)
+
         right_title = QLabel("Verification Result")
         right_title.setObjectName("cardTitle")
 
         right_desc = QLabel("Access decision and student information")
         right_desc.setObjectName("cardDesc")
+
+        title_block_lay.addWidget(right_title)
+        title_block_lay.addWidget(right_desc)
+
+        right_actions = QWidget()
+        right_actions_lay = QHBoxLayout(right_actions)
+        right_actions_lay.setContentsMargins(0, 0, 0, 0)
+        right_actions_lay.setSpacing(8)
+
+        self.btn_refresh = QPushButton("Refresh ⟳")
+        self.btn_refresh.setObjectName("refreshBtn")
+        self.btn_refresh.setCursor(Qt.PointingHandCursor)
+        self.btn_refresh.clicked.connect(self.load_saved_logs)
+
+        right_actions_lay.addWidget(self.btn_refresh)
+        #right_actions_lay.addWidget(self.clock_box)
+
+        right_top_lay.addWidget(title_block)
+        right_top_lay.addStretch(1)
+        right_top_lay.addWidget(right_actions)
 
         table_wrap = QFrame()
         table_wrap.setObjectName("tableWrap")
@@ -211,8 +277,9 @@ class MainWindow(QMainWindow):
 
         table_wrap_lay.addWidget(self.table)
 
-        right_lay.addWidget(right_title)
-        right_lay.addWidget(right_desc)
+        #right_lay.addWidget(right_title)
+        #right_lay.addWidget(right_desc)
+        right_lay.addWidget(right_top)
         right_lay.addWidget(table_wrap)
 
         content_lay.addWidget(left_card, 1)
@@ -236,7 +303,7 @@ class MainWindow(QMainWindow):
         elif year_level == 3: ordinal_indicator = "rd"
         else: ordinal_indicator = "th"
 
-        yr_level = str(year_level) + ordinal_indicator + "Year"
+        yr_level = str(year_level) + ordinal_indicator + " Year"
 
         # Student photo
         photo_widget = StudentPhotoCell(image_path=image_path)
@@ -378,7 +445,7 @@ class MainWindow(QMainWindow):
             
             # Formatting year level
             y_lvl = db_student.get('year_level', '-')
-            display_year = f"{y_lvl}" + ("th Year" if str(y_lvl).isdigit() else "")
+            display_year = f"{y_lvl}" #+ ("th Year" if str(y_lvl).isdigit() else "")
 
             image_path = self.resolve_student_image_path(db_student)
             if status == "verified":
@@ -583,7 +650,7 @@ class MainWindow(QMainWindow):
         QPushButton#secondaryBtn { background: #e5e7eb; color: #111827; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; font-size: 12px; }
         QPushButton#secondaryBtn:hover { background: #d1d5db; }
         QLineEdit#idInput { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 12px; }
-        QLabel#footnote { font-size: 15px; font-weight: 700; color: #363636; }
+        QLabel#footnote { font-size: 15px; font-weight: 700; color: #1b194d; }
         QLabel#footnote2 { font-size: 15px; font-weight: 700; color: #D4183D;}
         QFrame#tableWrap {
             background: #ffffff;
@@ -676,5 +743,38 @@ class MainWindow(QMainWindow):
             font-size: 10px;
             font-weight: 700;
         }
+        
+        QPushButton#refreshBtn {
+            background: #fde3ac;
+            color: #fbb521;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        QPushButton#refreshBtn:hover {
+            background: #fbbf24;
+            color: #111827;
+        }
+
+        QFrame#clockBox {
+            background: #fbbf24;
+            border: none;
+            border-radius: 10px;
+        }
+
+        QLabel#clockTime {
+            color: #1b194d;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        QLabel#clockDate {
+            color: #1b194d;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
         """)
         
