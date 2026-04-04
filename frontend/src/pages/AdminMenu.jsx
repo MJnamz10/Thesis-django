@@ -53,7 +53,7 @@ export default function AdminMenu() {
         <User
           size={32}
           strokeWidth={2}
-          style={{ width: "32px", height: "30px", minWidth: "30px", color: "#FBB318" }}
+          style={{ width: "32px", height: "30px", minWidth: "30px", color: "rgb(86, 84, 255)" }}
         />
       </button>
 
@@ -67,7 +67,7 @@ export default function AdminMenu() {
           <hr className="dropdown-divider" />
 
           <button className="sign-out-btn" onClick={handleSignOut}>
-            <LogOut size={18} strokeWidth={2} className="logout-icon" />
+            <LogOut size={18} strokeWidth={2} color="white" className="logout-icon" />
             Sign Out
           </button>
         </div>

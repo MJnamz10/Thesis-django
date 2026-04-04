@@ -59,7 +59,7 @@ body {
   letter-spacing: -0.5px;
 }
 
-/* The glowing green dot */
+/* The glowing green dot 
 .online-dot {
   width: 10px;
   height: 10px;
@@ -67,6 +67,7 @@ body {
   border-radius: 50%;
   box-shadow: 0 0 10px #22c55e;
 }
+*/
 
 .campus-subtitle {
   display: flex;
@@ -102,7 +103,7 @@ body {
 .clock-pill {
   display: flex;
   align-items: center;
-  background-color: #fbb316; /* Bright Yellow/Orange */
+  background-color:  #1c398e;/* #fbb316; /* Bright Yellow/Orange */
   padding: 12px 20px;
   border-radius: 12px;
   gap: 12px;
@@ -110,7 +111,7 @@ body {
 }
 
 .clock-icon {
-  color: #1c398e;
+  color: white;
 }
 
 .clock-text {
@@ -122,14 +123,14 @@ body {
 .time {
   font-size: 18px;
   font-weight: 800;
-  color: #1c398e;
+  color: white;
   line-height: 1.1;
 }
 
 .date {
   font-size: 13px;
   font-weight: 500;
-  color: #1c398e;
+  color: white;
 }
 
 /* --- 3. Navigation Bar (The File Folder Tabs) --- */

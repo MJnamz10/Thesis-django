@@ -9,8 +9,8 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background-color: #0f0e54;
-  border: 1px solid #0f0e54;
+  background-color: #fbb316; /* Bright Yellow/Orange */
+  border: 1px solid #fbb316;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -21,9 +21,10 @@
 
 /* Hover Effect for the button */
 .admin-avatar-btn:hover {
-  background-color: rgb(86, 84, 255);
-  border: 1px solid rgb(86, 84, 255);
+  background-color: #fbb316;
+  border: 1px solid #fbb316;
   transform: scale(1.05); 
+  color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
