@@ -4,6 +4,7 @@ import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import "../css/login.css";
 
 export default function Login() {
+    document.title = "Login | Verifid";
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 

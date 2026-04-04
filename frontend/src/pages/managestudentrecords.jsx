@@ -21,6 +21,7 @@ import AddStudentModal from "./AddStudentModal";
 import Header from "./Header.jsx";
 
 export default function ManageStudentRecords() {
+    document.title = "Manage Student Records | Verifid";
   const navigate = useNavigate();
   const location = useLocation();
 

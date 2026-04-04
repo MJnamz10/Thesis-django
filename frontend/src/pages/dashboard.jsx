@@ -5,6 +5,7 @@ import { RefreshCw, Users, UserCheck, UserX, TrendingUp } from "lucide-react";
 import Header from "./Header.jsx";
 
 export default function Dashboard() {
+  document.title = "Dashboard | Verifid";
   const navigate = useNavigate();
   const location = useLocation();
 

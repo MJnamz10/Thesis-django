@@ -7,6 +7,7 @@ import Header from "./Header.jsx";
 import "../css/dashboard.css";
 
 export default function AccessLogs() {
+  document.title = "Access Logs | Verifid";
   const navigate = useNavigate();
   const location = useLocation();
 
