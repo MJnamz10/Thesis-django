@@ -19,7 +19,7 @@ const handleSubmit = async (e) => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/forgot-password/", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/forgot-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,6 +34,7 @@ const handleSubmit = async (e) => {
         setError("Something went wrong. Please try again later.");
       }
     } catch (err) {
+      console.error("Network error:", err);
       setError("Cannot connect to the server. Is Django running?");
     }
   };

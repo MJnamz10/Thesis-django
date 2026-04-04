@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
 // Added Calendar, Download, and Search icons from lucide-react
 import { UserPen, Calendar, Download, Search } from "lucide-react";
+import Header from "./Header.jsx";
+import "../css/dashboard.css";
 
 export default function AccessLogs() {
   const navigate = useNavigate();
@@ -194,121 +196,51 @@ export default function AccessLogs() {
   };
 
   return (
-    <div>
-      <img src="/images/logo.png" alt="logo" className="logo" />
-      <h1 className="school">
-        University of Science and Technology of Southern Philippines
-      </h1>
-
-      <div className="container1">
-        <div
-          className={
-            location.pathname === "/dashboard" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/dashboard")}
-        >
-          <img src="/images/Icon.png" className="icon1" alt="icon" />
-          Dashboard
-        </div>
-
-        <div
-          className={
-            location.pathname === "/accesslogs" ? "active-item" : "item"
-          }
-          onClick={() => navigate("/accesslogs")}
-        >
-          <img src="/images/Icon (2).png" className="icon3" alt="icon" />
-          Access Logs
-        </div>
-
-        <div
-          className={
-            location.pathname === "/managestudentrecords"
-              ? "active-item"
-              : "item"
-          }
-          onClick={() => navigate("/managestudentrecords")}
-        >
-          <UserPen className="icon2" alt="icon" />
-          Manage Student Records
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="container2">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: "24px",
-          }}
-        >
-          <div>
-            <div
-              className="text1"
-              style={{ margin: 0, fontSize: "24px", fontWeight: "bold" }}
-            >
-              Access Logs
+    <>
+      <Header />
+      <div className="page">
+        {/* Main Content Area */}
+        <div className="container2AL">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              marginBottom: "24px",
+              flexWrap:
+                "wrap" /* 👉 Lets the export buttons drop down if squeezed */,
+              gap: "16px",
+            }}
+          >
+            <div className="dash-header">
+              <div className="txt1">
+                <p>Access Log</p>
+              </div>
+              <div className="txt2">
+                <p>Complete history of all access attempts</p>
+              </div>
             </div>
-            <div
-              className="text2"
-              style={{ margin: "4px 0 0 0", color: "gray" }}
-            >
-              Complete history of all access attempts
-            </div>
-          </div>
 
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <button
-              onClick={handleTodayFilter}
-              style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1px solid #E4E7EC",
-                backgroundColor: "white",
-                cursor: "pointer",
-                fontWeight: "500",
-                color: "black",
-              }}
-            >
-              Today
-            </button>
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <button
+                className={`today-btn ${selectedDate === formatDateInput(new Date()) ? "is-selected" : ""}`}
+                onClick={handleTodayFilter}
+              >
+                Today
+              </button>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "#F9FAFB",
-                border: "1px solid #E4E7EC",
-                borderRadius: "8px",
-                padding: "0 12px",
-                gap: "8px",
-              }}
-            >
+             <div className="date-filter-container">
+              
               <input
                 type="date"
+                className="date-filter-input"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                style={{
-                  border: "none",
-                  backgroundColor: "transparent",
-                  padding: "8px 0",
-                  outline: "none",
-                  color: "#344054",
-                  fontFamily: "inherit",
-                }}
               />
               {selectedDate && (
                 <button
+                  className="date-clear-btn"
                   onClick={clearDateFilter}
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "#667085",
-                    fontWeight: "600",
-                  }}
                 >
                   Clear
                 </button>
@@ -316,263 +248,259 @@ export default function AccessLogs() {
             </div>
 
             <button
-              onClick={exportToCSV}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1px solid #E4E7EC",
-                backgroundColor: "white",
-                cursor: "pointer",
-                fontWeight: "500",
-                color: "black",
-              }}
-            >
-              <Download size={16} /> Export CSV
-            </button>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "16px",
-            alignItems: "center",
-            marginBottom: "24px",
-          }}
-        >
-          <div style={{ position: "relative", flex: 1, maxWidth: "1020px" }}>
-            <Search
-              size={18}
-              style={{
-                position: "absolute",
-                left: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "gray",
-              }}
-            />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name or student ID..."
-              style={{
-                width: "100%",
-                padding: "10px 10px 10px 36px",
-                borderRadius: "8px",
-                border: "1px solid #E4E7EC",
-                backgroundColor: "#F9FAFB",
-                color: "black",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
+                className="export-btn"
+                onClick={exportToCSV}
+              >
+                <Download size={16} /> Export CSV
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: "8px" }}>
-            {["All", "Verified", "Not Verified"].map((status) => (
-              <button
-                key={status}
-                onClick={() => setActiveFilter(status)}
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              alignItems: "center",
+              marginBottom: "24px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ position: "relative", flex: 1, minWidth: "280px" }}>
+              <Search
+                size={18}
                 style={{
-                  padding: "8px 16px",
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "gray",
+                }}
+              />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by name or student ID..."
+                style={{
+                  width: "100%",
+                  padding: "10px 10px 10px 36px",
                   borderRadius: "8px",
                   border: "1px solid #E4E7EC",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                  backgroundColor:
-                    activeFilter === status ? "#0A0A0A" : "#FFFFFF",
-                  color: activeFilter === status ? "#FFFFFF" : "#344054",
+                  backgroundColor: "#F9FAFB",
+                  color: "black",
+                  outline: "none",
+                  boxSizing: "border-box",
                 }}
-              >
-                {status}
-              </button>
-            ))}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              {["All", "Verified", "Not Verified"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setActiveFilter(status)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid #E4E7EC",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                    transition: "all 0.2s",
+                    backgroundColor:
+                      activeFilter === status ? "#0f0e54" : "#FFFFFF",
+                    color: activeFilter === status ? "#FFFFFF" : "#344054",
+                  }}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="table-container">
-          <table
-            className="table"
-            style={{ width: "100%", borderCollapse: "collapse" }}
-          >
-            <thead>
-              <tr>
-                <th style={{ textAlign: "center" }}>Photo</th>
-                <th style={{ textAlign: "center" }}>Timestamp</th>
-                <th style={{ textAlign: "center" }}>Student ID</th>
-                <th style={{ textAlign: "center" }}>Student Name</th>
-                <th style={{ textAlign: "center" }}>Program & Year</th>
-                <th style={{ textAlign: "center" }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+          <div className="table-containerAL">
+            <table
+              className="tableAL"
+              style={{ width: "100%", borderCollapse: "collapse" }}
+            >
+              <thead>
                 <tr>
-                  <td
-                    colSpan="6"
-                    style={{ textAlign: "center", padding: "20px" }}
-                  >
-                    Loading...
-                  </td>
+                  <th style={{ textAlign: "center" }}>Timestamp</th>
+                  <th style={{ textAlign: "center" }}>Photo</th>
+                  <th style={{ textAlign: "center" }}>Student ID</th>
+                  <th style={{ textAlign: "center" }}>Student Name</th>
+                  <th style={{ textAlign: "center" }}>Program & Year</th>
+                  <th style={{ textAlign: "center" }}>Status</th>
                 </tr>
-              ) : filteredLogs.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="6"
-                    style={{ textAlign: "center", padding: "20px" }}
-                  >
-                    No logs found.
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((log) => {
-                  const isMissing = isMissingRecord(log);
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      style={{ textAlign: "center", padding: "20px" }}
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                ) : filteredLogs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      style={{ textAlign: "center", padding: "20px" }}
+                    >
+                      No logs found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLogs.map((log) => {
+                    const isMissing = isMissingRecord(log);
 
-                  return (
-                    <tr key={log.id}>
-                      <td
-                        style={{
-                          borderBottom: "2px solid #ECECF0",
-                          paddingTop: "8px",
-                          paddingBottom: "8px",
-                          textAlign: "center",
-                        }}
-                      >
-                        <div
-                          style={{ display: "flex", justifyContent: "center" }}
-                        >
-                          {isMissing ? (
-                            <div
-                              style={{
-                                width: "90px",
-                                height: "90px",
-                                borderRadius: "8px",
-                                border: "1px dashed #ef4444",
-                                background: "#fef2f2",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                padding: "5px",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "11px",
-                                  fontWeight: "600",
-                                  color: "#ef4444",
-                                  textTransform: "uppercase",
-                                  lineHeight: "1.2",
-                                }}
-                              >
-                                No Student <br /> Record
-                              </span>
-                            </div>
-                          ) : (
-                            <img
-                              src={getPhotoSrc(log.photo)}
-                              alt={log.full_name || "Student"}
-                              style={{
-                                width: "100px",
-                                height: "100px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
-                                border: "1px solid #E4E7EC",
-                                background: "#F9FAFB",
-                              }}
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  "/images/default-avatar.png";
-                              }}
-                            />
-                          )}
-                        </div>
-                      </td>
-
-                      <td
-                        style={{
-                          textAlign: "center",
-                          borderBottom: "2px solid #ECECF0",
-                        }}
-                      >
-                        {log.created_at
-                          ? new Date(log.created_at).toLocaleString("en-PH", {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "numeric",
-                              minute: "2-digit",
-                              second: "2-digit",
-                              hour12: true,
-                              timeZone: "Asia/Manila",
-                            })
-                          : log.timestamp}
-                      </td>
-
-                      <td
-                        style={{
-                          textAlign: "center",
-                          borderBottom: "2px solid #ECECF0",
-                        }}
-                      >
-                        {isMissing ? "N/A" : log.id_number}
-                      </td>
-
-                      <td
-                        style={{
-                          textAlign: "center",
-                          borderBottom: "2px solid #ECECF0",
-                        }}
-                      >
-                        {isMissing ? "N/A" : log.full_name}
-                      </td>
-
-                      <td
-                        style={{
-                          textAlign: "center",
-                          borderBottom: "2px solid #ECECF0",
-                        }}
-                      >
-                        {isMissing ? "N/A" : `${log.program} ${log.year_level}`}
-                      </td>
-
-                      <td
-                        style={{
-                          textAlign: "center",
-                          borderBottom: "2px solid #ECECF0",
-                        }}
-                      >
-                        <span
+                    return (
+                      <tr key={log.id}>
+                        <td
                           style={{
-                            padding: "4px 10px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                            color: "white",
-                            backgroundColor:
-                              !isMissing && log.status === "VERIFIED"
-                                ? "#22c55e" // green
-                                : isMissing
-                                  ? "#9ca3af" // gray for INVALID
-                                  : "#ef4444", // red for other non-verified (optional)
+                            borderBottom: "2px solid #ECECF0",
+                            paddingTop: "8px",
+                            paddingBottom: "8px",
+                            textAlign: "center",
                           }}
                         >
-                          {isMissing ? "INVALID" : log.status || "UNKNOWN"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {isMissing ? (
+                              <div
+                                style={{
+                                  width: "90px",
+                                  height: "90px",
+                                  borderRadius: "8px",
+                                  border: "1px dashed #ef4444",
+                                  background: "#fef2f2",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  textAlign: "center",
+                                  padding: "5px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "11px",
+                                    fontWeight: "600",
+                                    color: "#ef4444",
+                                    textTransform: "uppercase",
+                                    lineHeight: "1.2",
+                                  }}
+                                >
+                                  No Student <br /> Record
+                                </span>
+                              </div>
+                            ) : (
+                              <img
+                                src={getPhotoSrc(log.photo)}
+                                alt={log.full_name || "Student"}
+                                style={{
+                                  width: "100px",
+                                  height: "100px",
+                                  objectFit: "cover",
+                                  borderRadius: "8px",
+                                  border: "1px solid #E4E7EC",
+                                  background: "#F9FAFB",
+                                }}
+                                onError={(e) => {
+                                  e.currentTarget.src =
+                                    "/images/default-avatar.png";
+                                }}
+                              />
+                            )}
+                          </div>
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign: "center",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {log.created_at
+                            ? new Date(log.created_at).toLocaleString("en-PH", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                second: "2-digit",
+                                hour12: true,
+                                timeZone: "Asia/Manila",
+                              })
+                            : log.timestamp}
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign: "center",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {isMissing ? "N/A" : log.id_number}
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign: "center",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {isMissing ? "N/A" : log.full_name}
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign: "center",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          {isMissing
+                            ? "N/A"
+                            : `${log.program} ${log.year_level}`}
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign: "center",
+                            borderBottom: "2px solid #ECECF0",
+                          }}
+                        >
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "12px",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              color: "white",
+                              backgroundColor:
+                                !isMissing && log.status === "VERIFIED"
+                                  ? "#22c55e" // green
+                                  : isMissing
+                                    ? "#9ca3af" // gray for INVALID
+                                    : "#ef4444", // red for other non-verified (optional)
+                            }}
+                          >
+                            {isMissing ? "INVALID" : log.status || "UNKNOWN"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

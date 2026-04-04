@@ -1,82 +1,6 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden; /* hides scrolling on the main page */
-}
 
-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center; 
-  align-items: center; 
-  background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
-}
-
-/* --- HEADER & NAVIGATION --- */
-.logo {
-  width: 185px;
-  height: auto;
-  position: absolute;
-  left: 50px;
-  top: 15px;
-}
-
-.school {
-  font-family: "Arimo", sans-serif;
-  font-weight: 700;
-  color: #4a5565;
-  position: absolute;
-  left: 80px;
-  top: 80px;
-  font-size: 16px;
-}
-
-.icon1,
-.icon2,
-.icon3 {
-  width: 15px;
-  height: auto;
-  margin-right: 5px;
-  position: relative;
-  bottom: 1px;
-}
-
-.container1 {
-  width: fit-content;
-  max-width: 90%;
-  margin: 0 auto;     
-  height: 38px;
-  background-color: #efefef;
-  border-radius: 999px;
-  padding: 8px;
-  color: black;
-  display: flex;
-  gap: 10px;
-  flex-wrap: nowrap;
-  box-sizing: border-box;
-  justify-self: center;
-}
-
-.item,
-.active-item {
-  width: 860px; /* Note: You might want to change this to 'auto' with padding later so it fits the text better */
-  height: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50px;
-  font-size: 14px;
-  cursor: pointer;
-  position: relative;
-  bottom: 2px;
-  color: black;
-}
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-   filter: invert(1); 
 }
 
 .active-item {
@@ -84,48 +8,179 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* --- MAIN DASHBOARD AREA --- */
-.container2 {
+.container2AL {
   display: flex;
-  flex-direction: column; /* Stacks items vertically */
-  padding: 30px;          /* Pushes content away from the borders */
-  box-sizing: border-box; /* Ensures padding doesn't make the box wider than 1370px */
+  flex-direction: column; 
+  padding: 30px;          
+  box-sizing: border-box; 
   
-  width: 1370px;
-  height: 740px; 
+  width: 100%;
+  flex: 1; 
+  min-height: 760px;
+  margin-top: 38px;
+  height: 100%;
+  
   background-color: white;
   border-radius: 14px;
-  position: absolute;
-  top: 200px;
-  left: 80px;
   border: 2px solid #e5e7eb;
 }
 
+/* --- Filter Buttons --- */
+.today-btn {
+    height: 40px;
+
+  padding: 0px 18px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: 1px solid #E4E7EC;
+  background-color: white;
+  color: black;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  
+}
+
+.today-btn:hover {
+  background-color: #ffffff; 
+  border-color: #0f0e54; 
+}
+
+.today-btn:active {
+  background-color: #4a5565;
+  color: white;
+}
+.today-btn.is-selected {
+  background-color: #0f0e54; /* Dark blue background */
+  color: white;
+  border-color: #0f0e54;
+}
+/* --- Date Filter Container --- */
+.date-filter-container {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  background-color: #f7f7f720;
+  border: 1px solid #E4E7EC;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0px 12px;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.date-filter-container:focus-within {
+  background-color: #0f0e54;
+  color: white;
+}
+.date-filter-container:hover {
+  background-color: #0f0e54;
+  border-color: #0f0e54;
+  color: white;
+}
+/* --- Date Input --- */
+.date-filter-input {
+  border: none;
+  background-color: transparent;
+  padding: 10px 0; 
+  outline: none;
+  color: #344054;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* --- Clear Button --- */
+.date-clear-btn {
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #667085;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 4px;
+  transition: color 0.2s ease;
+}
+
+.date-clear-btn:hover {
+  color: #ef4444; 
+
+}
+/* 👉 1. Turns the date text white when the container is hovered/focused */
+.date-filter-container:hover .date-filter-input,
+.date-filter-container:focus-within .date-filter-input {
+  color: #ffffff;
+}
+
+/* 👉 2. Turns the "Clear" text white when the container is hovered/focused */
+.date-filter-container:hover .date-clear-btn,
+.date-filter-container:focus-within .date-clear-btn {
+  color: #ffffff;
+}
+
+/* 👉 3. If you are using the default browser calendar icon, this forces it to turn white! */
+.date-filter-container:hover input[type="date"]::-webkit-calendar-picker-indicator,
+.date-filter-container:focus-within input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(200%);
+}
+/* --- Export Button --- */
+.export-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  /* 👉 Perfectly matches the Today button and Date Picker! */
+  height: 40px; 
+  padding: 0 18px; 
+  
+  border-radius: 8px;
+  border: 1px solid #E4E7EC;
+  background-color: #0f0e54;
+  color: rgb(255, 255, 255);
+  font-weight: 500;
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  
+  transition: all 0.2s ease;
+}
+
+/* 👉 A subtle hover effect matching the clear, modern design */
+.export-btn:hover {
+  background-color: #0f0e54;
+  border-color: #0f0e54;
+}
+
+/* 👉 The satisfying physical "click" effect */
+.export-btn:active {
+  transform: scale(0.96);
+}
 /* --- TABLE STYLING --- */
-.table-container {
+.table-containerAL {
   flex: 1;                /* Automatically takes up all remaining space at the bottom */
   width: 100%;
   background-color: white;
-  border-radius: 10px;
   border: 1px solid #e5e7eb;
   overflow-y: auto;       /* Adds a scrollbar to the table if it gets too long */
 }
 
-.table {
+.tableAL {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-family: "Arimo", sans-serif;
 }
 
-.table th, .table td {
+.tableAL th, .tableAL td {
   padding: 16px;
   border-bottom: 1px solid #e5e7eb;
   color: #344054;
 }
 
-.table th {
-  background-color: #f9fafb;
-  color: #475467;
+.tableAL th {
+  background-color: #0F0E54;
+  color: #ffffff;
   font-weight: 600;
   font-size: 14px;
   position: sticky;       /* Keeps headers visible when scrolling */
@@ -133,6 +188,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   z-index: 1;
 }
 
-.table td {
+.tableAL td {
   font-size: 14px;
 }

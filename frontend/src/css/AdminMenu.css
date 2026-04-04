@@ -1,0 +1,107 @@
+/* Container holds everything relative to itself */
+.admin-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* The Circular Button */
+.admin-avatar-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #0f0e54;
+  border: 1px solid #0f0e54;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+/* Hover Effect for the button */
+.admin-avatar-btn:hover {
+  background-color: rgb(86, 84, 255);
+  border: 1px solid rgb(86, 84, 255);
+  transform: scale(1.05); 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* The Dropdown Card */
+.admin-dropdown {
+  position: absolute;
+  top: 60px; /* Pushes it right below the button */
+  right: 0; /* Aligns it to the right edge of the button */
+  width: 240px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eee;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease forwards;
+}
+
+/* Admin Info Section */
+.admin-info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.admin-role {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0;
+}
+
+/* Sign Out Button */
+.sign-out-btn {
+  width: 100%;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  color: #dc3545; /* Red warning color */
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+/* Hover Effect for Sign Out */
+.sign-out-btn:hover {
+  background-color: #fef0f0;
+}
+
+.logout-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Smooth pop-in animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

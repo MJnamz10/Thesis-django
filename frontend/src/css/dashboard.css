@@ -1,166 +1,110 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100vh;
-}
-
-body {
-  background: linear-gradient(to bottom, #eff6ff, #eef2ff, #faf5ff);
-  font-family: "Arimo", sans-serif;
-}
-
 /* Overall layout */
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding: 20px;
-  gap: 2rem; /* This creates a relative gap between header and main */
-}
-
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 15px;
-
-}
-
-.logo {
-  width: clamp(110px, 10vw, 160px);
-}
-
-.school {
-  font-weight: 700;
-  color: #4a5565;
-  font-size: clamp(13px, 1.2vw, 16px);
-  margin: 0 0 8px 0;
-}
-
-/* Nav pills */
-.page .container1 {
-  width: fit-content; /* 👈 only as wide as needed */
-  max-width: 90%; /* prevent overflow */
-  margin: 0 auto;
-  height: 38px; /* 👈 centers it */
-
-  background-color: #efefef;
-  border-radius: 999px;
-  padding: 8px;
-
-  display: flex;
-  gap: 10px;
-  flex-wrap: nowrap;
-  color: black;
-  /*top: 150px;*/
-
-  box-sizing: border-box;
-  justify-self: center; /* ✅ centers within grid parent */
-}
-
-.item,
-.active-item {
-  flex: 0 1 auto; /* shrink if needed, don't force stretch */
-  min-width: 0;
-
-  padding: 0 18px; /* horizontal spacing */
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 999px;
-  gap: 8px;
-
-  white-space: nowrap;
-
-  padding-top: 1px;
-}
-
-.active-item {
-  background: #fff;
-}
-
-/* icons in nav */
-.icon1,
-.icon2,
-.icon3 {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  min-height: 70vh; /* Changed from 70vh to fill the screen properly */
+  padding: 0px 10%;
+  max-width: 1600px;
+  margin: 0 auto; /* Centers the whole page */
+  gap: 0px;
 }
 
 /* Main content */
 .main {
-  display: grid;
+display: flex; /* Changed from 'grid' so it stretches vertically! */
+  flex-direction: column;
+  flex: 1; /* Pushes the main area to fill the screen */
   gap: 18px;
+  padding-bottom: 20px;
 }
 
 /* Top dashboard cards: responsive grid */
 .dash-containers {
   display: grid;
-  grid-template-columns: repeat(4, minmax(332px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-  margin-top: clamp(40px, 19vh, 500px);
-  height: 45%;
+  margin-top: 40px;
 }
 
 .dash-item {
   background-color: white;
   border-radius: 14px;
-  padding: 14px;
+  padding: 20px; /* More padding to match the clean design */
   display: flex;
-  align-items: center;
-  justify-content: space-between; /* title left, icon right */
-  min-height: 110px;
+  flex-direction: column;
+  justify-content: space-between; /* Pushes icon up, text down */
+  min-height: 140px; /* Slightly taller for the big numbers */
+  border: 1px solid #E4E7EC; /* Faint outline from Figma */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); /* Soft depth */
   box-sizing: border-box;
 }
 
-.title1 {
-  margin: 0;
-  font-size: 16px;
-  color: #6b7280;
-  line-height: 20px;
+.card-top {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 
-.icons {
-  width: 40px;
-  height: auto;
+/* The little golden square around the icon */
+.card-icon-wrapper {
+  background-color: #fbb316;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f0e54; /* Dark blue icon */
+}
+
+/* Bottom section: groups the huge number and text */
+.card-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* The massive golden number */
+.card-value {
+  font-size: 46px; 
+  font-weight: 400; /* Thinner font weight to match design */
+  color: #fbb316;
+  line-height: 1;
+}
+
+/* The dark blue subtext */
+.card-label {
+  font-size: 14px;
+  color: #0f0e54; 
+  font-weight: 500;
+  margin: 0;
 }
 
 /* Middle big container */
 .container6 {
+display: flex;
+  flex-direction: column;
+  flex: 1; /* Automatically takes up all leftover vertical space */
   width: 100%;
-  height: clamp(220px, 70vh, 550px);
-  background-color: white;
-  border-radius: 14px;
-  position: relative;
-  top: 8px;
 }
 
 /* Bottom overview container */
 .dash-containers2 {
+display: flex;
+  flex-direction: column;
+  flex: 1; /* Stretches the white box perfectly to the bottom */
   width: 100%;
   background-color: white;
   border-radius: 14px;
-  padding: 16px;
+  padding: 30px;
   box-sizing: border-box;
-  height: 87%;
-  position: relative;
-  top: 2px;
-
-  display: grid;
   gap: 14px;
 }
 
 .dash-header {
   display: grid;
-  gap: 0px;
+  gap: 12px;
 }
 
 .txt1,
@@ -177,13 +121,14 @@ body {
 }
 
 .txt1 {
-  font-size: 14px;
-  color: #111;
+  font-size: 30px;
+  font-weight: 600;
+  color: #0f0e54;
 }
 
 .txt2 {
-  font-size: 14px;
-  color: #717182;
+  font-size: 16px;
+  color: #fbb318;
 }
 
 .icon4,
@@ -192,7 +137,42 @@ body {
   height: auto;
   position: static; /* IMPORTANT: stop absolute positioning */
 }
+/* --- Refresh Button --- */
+.refresh-btn {
+  /* Exact Figma Dimensions */
+  width: 111px;
+  height: 35px;
 
+  /* Colors to match the design */
+  background-color: #fbeaa9; /* The pale yellow background */
+  color: #f5a623; /* The golden yellow text/icon */
+
+  /* Layout & Styling */
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Space between text and icon */
+
+  /* Typography */
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+
+  /* Interactivity */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Hover & Click Effects */
+.refresh-btn:hover {
+  background-color: #f7e08b; /* Slightly darker on hover */
+}
+
+.refresh-btn:active {
+  transform: scale(0.95); /* Satisfying "click" shrink effect */
+}
 /* Granted / Denied cards */
 .dash-containers3 {
   display: grid;
@@ -221,38 +201,10 @@ body {
 }
 
 .title2 {
- position: relative;
- top: -10px;
- margin: 0px;
+  position: relative;
+  top: -10px;
+  margin: 0px;
   font-size: 14px;
   color: #4a5565;
   margin-left: 20px;
-}
-
-/* Breakpoints */
-@media (max-width: 1100px) {
-  .dash-containers {
-    grid-template-columns: repeat(2, minmax(220px, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .dash-containers {
-    grid-template-columns: 1fr;
-  }
-
-  .dash-containers3 {
-    grid-template-columns: 1fr;
-  }
-
-  @media (max-width: 600px) {
-    .container1 {
-      border-radius: 20px; /* Less rounded when stacked */
-    }
-    .item,
-    .active-item {
-      /* On mobile, let them take 100% or 45% depending on preference */
-      flex: 1 1 40%;
-    }
-  }
 }

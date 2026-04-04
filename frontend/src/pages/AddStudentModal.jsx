@@ -57,8 +57,8 @@ export default function AddStudentModal({
 
     try {
       const url = editData
-        ? `http://127.0.0.1:8000/api/students/${editData.id}/`
-        : "http://127.0.0.1:8000/api/students/";
+        ? `${import.meta.env.VITE_API_BASE}/api/students/${editData.id}/`
+        : `${import.meta.env.VITE_API_BASE}/api/students/`;
 
       const method = editData ? "PUT" : "POST";
 
@@ -84,6 +84,21 @@ export default function AddStudentModal({
       alert("Network error. Please check if the server is running.");
     }
   };
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        id_number: editData?.id_number || "",
+        full_name: editData?.full_name || "",
+        program: editData?.program || "",
+        year_level: editData?.year_level || "",
+        gender: editData?.gender || "",
+        age: editData?.age || "",
+        validity_status: editData?.validity_status || "NOT_VERIFIED",
+      });
+      setPreviewUrl(editData?.photo || null);
+      setSelectedFile(null);
+    }
+  }, [open, editData]);
 
   useEffect(() => {
     if (!open) return;
