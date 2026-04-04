@@ -10,8 +10,8 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState({
     totalStudents: 0,
-    grantedToday: 0,
-    deniedToday: 0,
+    verifiedToday: 0,
+    unverifiedToday: 0,
     trafficToday: 0,
   });
 
@@ -49,8 +49,8 @@ export default function Dashboard() {
 
       setStats({
         totalStudents: data.stats?.totalStudents || 0,
-        grantedToday: data.stats?.grantedToday || 0,
-        deniedToday: data.stats?.deniedToday || 0,
+        verifiedToday: data.stats?.verifiedToday || 0,
+        unverifiedToday: data.stats?.unverifiedToday || 0,
         trafficToday: data.stats?.trafficToday || 0,
       });
 
@@ -99,7 +99,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.grantedToday}</span>
+                <span className="card-value">{loading ? "..." : stats.verifiedToday}</span>
                 <span className="card-label">Verified</span>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.deniedToday}</span>
+                <span className="card-value">{loading ? "..." : stats.unverifiedToday}</span>
                 <span className="card-label">Unverified</span>
               </div>
             </div>

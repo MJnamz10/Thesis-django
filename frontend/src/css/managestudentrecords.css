@@ -6,7 +6,8 @@
   
   width: 100%;
   flex: 1; /* Stretches to fill the screen */
-  min-height: 600px;
+  max-height: calc(100vh-120px); 
+  overflow: hidden; 
   margin-top: 38px; /* Breathes comfortably below the header */
   
   background-color: white;
@@ -16,9 +17,9 @@
 
 /* --- TABLE CONTAINER --- */
 .table-containerMSR {
-  /* 👉 Removed the rigid 500px height and 95.5% width */
   flex: 1; /* Automatically takes up all leftover vertical space */
   width: 100%;
+  min-height: 0;
   overflow-y: auto; /* Vertical scroll */
   overflow-x: auto; /* 👉 Added horizontal scroll for small screens */
 }
@@ -52,12 +53,6 @@
 
 .tableMSR td {
   padding: 12px 24px;
-}
-.table-containerMSR {
-  width: 95.5%;
-  height: 500px; /* Adjust as needed */
-  overflow-y: auto; /* Enables vertical scrolling */
-  overflow-x: hidden;
 }
 
 .student-photo-thumbnail {

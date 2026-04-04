@@ -214,7 +214,7 @@ export default function AccessLogs() {
           >
             <div className="dash-header">
               <div className="txt1">
-                <p>Access Log</p>
+                <p>Access Logs</p>
               </div>
               <div className="txt2">
                 <p>Complete history of all access attempts</p>
@@ -484,9 +484,9 @@ export default function AccessLogs() {
                               backgroundColor:
                                 !isMissing && log.status === "VERIFIED"
                                   ? "#22c55e" // green
-                                  : isMissing
-                                    ? "#9ca3af" // gray for INVALID
-                                    : "#ef4444", // red for other non-verified (optional)
+                                  : log.status === "NOT VERIFIED"
+                                    ? "#ef4444"// red for not verified
+                                    : "#000000" , // black for invalid, not in masterlist, or missing data
                             }}
                           >
                             {isMissing ? "INVALID" : log.status || "UNKNOWN"}

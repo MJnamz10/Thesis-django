@@ -178,30 +178,29 @@ def dashboard_data(request):
             .count()
         )
 
-        granted_today = 0
-        denied_today = 0
+        #granted_today = 0
+        #denied_today = 0
         traffic_today = today_logs.count()
 
-        for log in today_logs:
-            if not log.id_number:
-                denied_today += 1
-                continue
-
-            student = Student.objects.filter(id_number=log.id_number).first()
-
-            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
-                granted_today += 1
-            else:
-                denied_today += 1
+        verifiedToday = (today_logs.filter(status="verified").values("id_number").distinct().count()) # Count unique verified IDs
+        unverifiedToday = today_logs.filter(status="not_verified").values("id_number").distinct().count() # Count unique not verified IDs
+        #invalid_id = today_logs.filter(status="invalid").values("id_number").distinct().count() # Count unique invalid IDs
 
         recent_scans = []
 
         for log in recent_logs:
             student = Student.objects.filter(id_number=log.id_number).first()
 
-            if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+            #if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+            #    validity = "VERIFIED"
+            #else:
+            #    validity = "NOT VERIFIED"
+
+            if not log.id_number or log.status == "invalid":
+                validity = "INVALID"
+            elif log.status == "verified":
                 validity = "VERIFIED"
-            else:
+            elif log.status == "not_verified":
                 validity = "NOT VERIFIED"
 
             local_created_at = timezone.localtime(log.created_at)
@@ -225,8 +224,11 @@ def dashboard_data(request):
             })
     else:
         total_students = 0
-        granted_today = 0
-        denied_today = 0
+        #granted_today = 0
+        #denied_today = 0
+        verifiedToday = 0
+        unverifiedToday = 0
+        #invalid_id = 0
         traffic_today = 0
         recent_scans = []
 
@@ -234,8 +236,8 @@ def dashboard_data(request):
         "scannerOnline": scanner_online,
         "stats": {
             "totalStudents": total_students,
-            "grantedToday": granted_today,
-            "deniedToday": denied_today,
+            "verifiedToday": verifiedToday,
+            "unverifiedToday": unverifiedToday,
             "trafficToday": traffic_today,
         },
         "recentScans": recent_scans,
@@ -281,10 +283,10 @@ def all_logs(request):
 
         student = Student.objects.filter(id_number=log.id_number).first()
 
-        if student and student.validity_status == Student.ValidityStatus.VERIFIED:
-            status_label = "VERIFIED"
-        else:
-            status_label = "NOT VERIFIED"
+        #if student and student.validity_status == Student.ValidityStatus.VERIFIED:
+        #    status_label = "VERIFIED"
+        #else:
+        #    status_label = "NOT VERIFIED"
 
         photo_url = get_student_photo_url(student)
 
@@ -298,7 +300,7 @@ def all_logs(request):
             "full_name": log.full_name or "",
             "program": log.program or "",
             "year_level": log.year_level or "",
-            "status": status_label,
+            "status": "VERIFIED" if log.status == "verified" else ("NOT VERIFIED" if log.status == "not_verified" else "INVALID"),#log.status,#status_label,
             "reason": log.reason or "",
             "photo": photo_url,
         })
