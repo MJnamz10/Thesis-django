@@ -25,7 +25,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-  margin-top: 40px;
+  margin-top: 15px;
 }
 
 .dash-item {
@@ -99,16 +99,15 @@
   width: 100%;
   background-color: white;
   border-radius: 14px;
-  padding: 30px;
+  padding: 15px 30px 15px 30px;
   box-sizing: border-box;
   gap: 14px;  
-  min-height: 0;
-  overflow-y: auto; 
+  min-height: 0px;
 }
 
 .dash-header {
   display: grid;
-  gap: 12px;
+  gap: 6px;
 }
 
 .txt1,
@@ -125,14 +124,14 @@
 }
 
 .txt1 {
-  font-size: 30px;
+  font-size: 25px;
   font-weight: 600;
   color: #0f0e54;
 }
 
 .txt2 {
   font-size: 16px;
-  color: #fbb318;
+  color: #555557;
 }
 
 .icon4,
@@ -211,4 +210,57 @@
   font-size: 14px;
   color: #4a5565;
   margin-left: 20px;
+}
+
+.table-containerD {
+  flex-grow: 1;
+  flex: 1;               
+  width: 100%;
+  min-height: 0;         
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableD {
+  height: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Arimo", sans-serif;
+  margin: 0 auto;
+
+  /* 👉 ADD THESE TWO LINES */
+  display: flex;
+  flex-direction: column;
+}
+
+.tableD th, .tableD td {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #344054;
+}
+
+.tableD th {
+  background-color: white; /*#ffffff; */
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* 1. Make the body a block element so it can have a height and scrollbar */
+.tableD tbody {
+  display: block;
+  flex: 1 1 auto; /* This will now work because .tableAL is a flex container! */
+  overflow-y: auto;
+}
+
+/* 2. Force the header and the body rows to behave like tables to keep columns aligned */
+.tableD thead, 
+.tableD tbody tr {
+  flex: 0 0 auto;
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }

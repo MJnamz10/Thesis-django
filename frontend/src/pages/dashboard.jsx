@@ -88,7 +88,7 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.totalStudents}</span>
-                <span className="card-label">Total students</span>
+                <span className="card-label">Total Students</span>
               </div>
             </div>
 
@@ -101,7 +101,7 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.verifiedToday}</span>
-                <span className="card-label">Verified</span>
+                <span className="card-label">Verified Students</span>
               </div>
             </div>
 
@@ -114,7 +114,7 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.unverifiedToday}</span>
-                <span className="card-label">Unverified</span>
+                <span className="card-label">Unverified Students</span>
               </div>
             </div>
 
@@ -127,14 +127,14 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.trafficToday}</span>
-                <span className="card-label">Total access attempts</span>
+                <span className="card-label">Total Access Attempts</span>
               </div>
             </div>
 
           </section>
 
           <section className="container6">
-            <section className="dash-containers2" style={{ marginTop: "20px" }}>
+            <section className="dash-containers2">
              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               
               <div className="dash-header">
@@ -155,107 +155,18 @@ export default function Dashboard() {
 
             </div>
 
-              <div
-                style={{
-               flex: 1, 
-                  overflowX: "auto",
-                  overflowY: "auto",
-                  border: "1px solid #ECECF0", 
-                  borderRadius: "10px"
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    margin: "0 auto",
-                    borderCollapse: "collapse",
-                  }}
-                >
+              <div className="table-containerD">
+                <table className = "tableD" style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
-                      <th
-                        style={{
-                          width: "10%",
-                          padding: "10px",
-                          color: "white",
-                          textAlign: "center",
-                          backgroundColor: "#0F0E54",
-                        }}
-                      >
-                        Photo
-                      </th>
-                      <th
-                        style={{
-                          width: "18%",
-                          padding: "10px",
-                          textAlign: "center",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-
-                        }}
-                      >
-                        Timestamp
-                      </th>
-                      <th
-                        style={{
-                          width: "16%",
-                          paddingRight: "8%",
-                          textAlign: "center",
-                          padding: "10px",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-
-                        }}
-                      >
-                        Student ID
-                      </th>
-                      <th
-                        style={{
-                          width: "19%",
-                          textAlign: "center",
-                          padding: "10px",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-
-                        }}
-                      >
-                        Student Name
-                      </th>
-                      <th
-                        style={{
-                          width: "16%",
-                          textAlign: "center",
-                          padding: "10px",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-
-                        }}
-                      >
-                        Program
-                      </th>
-                      <th
-                        style={{
-                          width: "10%",
-                          textAlign: "center",
-                          padding: "10px",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-
-                        }}
-                      >
-                        Year
-                      </th>
-                      <th
-                        style={{
-                          width: "20%",
-                          textAlign: "center",
-                          padding: "10px",
-                          color: "white",
-                          backgroundColor: "#0F0E54",
-                        }}
-                      >
-                        Validity
-                      </th>
+                      <th style={{ textAlign: "center" }}>Photo</th>
+                      <th style={{ textAlign: "center" }}>Timestamp</th>
+                      <th style={{ textAlign: "center" }}>Timestamp</th>
+                      <th style={{ textAlign: "center" }}>Student ID</th>
+                      <th style={{ textAlign: "center" }}>Student Name</th>
+                      <th style={{ textAlign: "center" }}>Program</th>
+                      <th style={{ textAlign: "center" }}>Year</th>
+                      <th style={{ textAlign: "center" }}>Validity</th>
                     </tr>
                   </thead>
                   <tbody>

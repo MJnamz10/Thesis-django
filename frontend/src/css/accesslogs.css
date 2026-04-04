@@ -11,16 +11,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .container2AL {
   display: flex;
   flex-direction: column; 
+
   padding: 30px;          
   box-sizing: border-box; 
+
+  max-height: 80vh;
   
   width: 100%;
   flex: 1; 
   
-  max-height: calc(100vh - 120px); 
   overflow: hidden;
   
-  margin-top: 38px;
+  margin-top: 20px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;
@@ -28,7 +30,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* --- Filter Buttons --- */
 .today-btn {
-    height: 40px;
+  height: 40px;
 
   padding: 0px 18px;
   border-radius: 8px;
@@ -157,21 +159,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 /* --- TABLE STYLING --- */
 .table-containerAL {
+  flex-grow: 1;
   flex: 1;               
   width: 100%;
   min-height: 0;         
-  
   background-color: white;
   border: 1px solid #e5e7eb;
-  overflow-y: auto;       
-  overflow-x: auto; 
+  display: flex;
+  flex-direction: column;
 }
 
 .tableAL {
+  height: 100%;
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-family: "Arimo", sans-serif;
+  
+  /* 👉 ADD THESE TWO LINES */
+  display: flex;
+  flex-direction: column;
 }
 
 .tableAL th, .tableAL td {
@@ -181,15 +188,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .tableAL th {
-  background-color: #0F0E54;
-  color: #ffffff;
+  background-color: white;
+  color: #374151;
   font-weight: 600;
   font-size: 14px;
-  position: sticky;       /* Keeps headers visible when scrolling */
-  top: 0;
-  z-index: 1;
 }
 
 .tableAL td {
   font-size: 14px;
+}
+
+/* 1. Make the body a block element so it can have a height and scrollbar */
+.tableAL tbody {
+  display: block;
+  flex: 1 1 auto; /* This will now work because .tableAL is a flex container! */
+  overflow-y: auto;
+}
+
+/* 2. Force the header and the body rows to behave like tables to keep columns aligned */
+.tableAL thead, 
+.tableAL tbody tr {
+  flex: 0 0 auto;
+  display: table;
+  width: 100%;
+  table-layout: fixed;
 }

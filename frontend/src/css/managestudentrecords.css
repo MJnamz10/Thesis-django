@@ -12,7 +12,7 @@
   ); /* 100vh is the full screen, minus your header space */
   overflow: hidden; /* Stops anything inside from breaking out */
 
-  margin-top: 38px;
+  margin-top: 20px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;
