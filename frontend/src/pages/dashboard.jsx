@@ -181,7 +181,7 @@ export default function Dashboard() {
                           backgroundColor: "#0F0E54",
                         }}
                       >
-                        Timestamp
+                        Photo
                       </th>
                       <th
                         style={{
@@ -193,7 +193,7 @@ export default function Dashboard() {
 
                         }}
                       >
-                        Photo
+                        Timestamp
                       </th>
                       <th
                         style={{

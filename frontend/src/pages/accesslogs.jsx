@@ -324,8 +324,8 @@ export default function AccessLogs() {
             >
               <thead>
                 <tr>
-                  <th style={{ textAlign: "center" }}>Timestamp</th>
                   <th style={{ textAlign: "center" }}>Photo</th>
+                  <th style={{ textAlign: "center" }}>Timestamp</th>
                   <th style={{ textAlign: "center" }}>Student ID</th>
                   <th style={{ textAlign: "center" }}>Student Name</th>
                   <th style={{ textAlign: "center" }}>Program & Year</th>
