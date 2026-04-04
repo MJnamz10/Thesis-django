@@ -482,7 +482,7 @@ class MainWindow(QMainWindow):
             decoded_text = scan.get("decoded_text", "")
 
             display_name = "N/A"
-            display_sid = decoded_text[:15] if decoded_text else "N/A"
+            display_sid = "N/A" #decoded_text[:15] if decoded_text else "N/A"
             display_prog = "N/A"
             display_year = "N/A"
             image_path = None        # No image will be displayed

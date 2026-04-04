@@ -32,24 +32,14 @@ class ScanManager:
 
         parsed = scan["parsed"]
 
-        if not parsed.get("id"):
-            print("[SCAN_MANAGER] No ID found in QR data")
-            return {
-                "parsed": parsed,
-                "decoded_text": scan["decoded_text"],
-                "decoded_stage": scan.get("decoded_stage", "UNKNOWN"),
-                "verification": {
-                    "status": "invalid",
-                    "student": None,
-                    "reason": "invalid_qr",
-                    "mismatches": {},
-                },
-            }
+        # Get ID or default to empty string if not present, then strip whitespace
+        raw_id = (parsed.get("id") or "").strip()
 
+        # log even if no ID found, but mark as invalid
         qr_data = {
-            "id": (parsed.get("id") or "").strip(),
-            "name": (parsed.get("name") or "").strip(),
-            "course": (parsed.get("course") or "").strip(),
+            "id": raw_id if raw_id else "N/A",
+            "name": (parsed.get("name") or "N/A").strip(),
+            "course": (parsed.get("course") or "N/A").strip(),
             "gate": "Main Gate",
             "qr_payload": decoded_text,
         }
@@ -60,10 +50,11 @@ class ScanManager:
 
         return {
             "parsed": parsed,
-            "decoded_text": decoded_text,
+            "decoded_text": "decoded_text",
             "decoded_stage": scan.get("decoded_stage", "UNKNOWN"),
             "verification": verification,
         }
+
 
     def draw_boxes(self, display_frame, detections, source_shape):
         return self.drawer.draw_boxes_for_display(

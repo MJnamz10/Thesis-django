@@ -186,11 +186,12 @@ class APIClient:
     def verify_student(self, qr_data: dict):
         scanned_id = (qr_data.get("id") or "").strip()
 
-        if not scanned_id:
+        # If ID is N/A or empty after stripping, log as invalid
+        if not scanned_id or scanned_id == "N/A":
             result = {
                 "status": "invalid",
                 "student": None,
-                "reason": "missing_id",
+                "reason": "invalid_qr",
                 "mismatches": {},
             }
             self.save_scan_log(qr_data, result)
@@ -219,6 +220,7 @@ class APIClient:
                 student = cur.fetchone()
 
             if not student:
+                #if student not found, log with scanned ID and mark as not_found
                 result = {
                     "status": "invalid",
                     "student": None,
