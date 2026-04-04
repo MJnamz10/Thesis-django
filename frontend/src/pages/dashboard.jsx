@@ -36,9 +36,9 @@ export default function Dashboard() {
     return `${import.meta.env.VITE_API_BASE}${photo}`;
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) {setLoading(true);} // Only show loading state on initial fetch or when explicitly requested
 
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE}/api/verifid/dashboard-data`,
@@ -100,7 +100,7 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.grantedToday}</span>
-                <span className="card-label">Successful verifications</span>
+                <span className="card-label">Verified</span>
               </div>
             </div>
 
@@ -113,7 +113,7 @@ export default function Dashboard() {
               </div>
               <div className="card-bottom">
                 <span className="card-value">{loading ? "..." : stats.deniedToday}</span>
-                <span className="card-label">Failed verifications</span>
+                <span className="card-label">Unverified</span>
               </div>
             </div>
 
