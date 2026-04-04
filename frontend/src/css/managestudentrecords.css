@@ -1,35 +1,39 @@
 .container2MSR {
   display: flex;
-  flex-direction: column; 
-  padding: 30px;          
-  box-sizing: border-box; 
-  
+  flex-direction: column;
+  padding: 30px;
+  box-sizing: border-box;
   width: 100%;
-  flex: 1; /* Stretches to fill the screen */
-  min-height: 600px;
-  margin-top: 38px; /* Breathes comfortably below the header */
-  
+  flex: 1;
+
+  /* 👉 THE FIX: Locks the box to the screen height so it cannot push the page down! */
+  max-height: calc(
+    100vh - 120px
+  ); /* 100vh is the full screen, minus your header space */
+  overflow: hidden; /* Stops anything inside from breaking out */
+
+  margin-top: 38px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;
 }
-
 /* --- TABLE CONTAINER --- */
 .table-containerMSR {
-  /* 👉 Removed the rigid 500px height and 95.5% width */
-  flex: 1; /* Automatically takes up all leftover vertical space */
+  flex: 1;
   width: 100%;
-  overflow-y: auto; /* Vertical scroll */
-  overflow-x: auto; /* 👉 Added horizontal scroll for small screens */
+
+  /* 👉 This 'min-height: 0' is a Flexbox secret! 
+     It forces the table to shrink and trigger the scrollbar 
+     instead of stretching its parent container */
+  min-height: 0;
+
+  overflow-y: auto; /* Enables vertical scrolling */
+  overflow-x: auto; /* Enables horizontal scrolling for small screens */
 }
 
 /* --- TABLE STYLING --- */
 .tableMSR {
   width: 100%;
-  
-  /* 👉 Prevents the 10 columns from crushing together on an iPad/Laptop */
-  min-width: 1100px; 
-  
   border-collapse: collapse;
   text-align: left;
   font-family: "Arimo", sans-serif;
@@ -37,32 +41,26 @@
 
 .tableMSR th {
   text-align: left;
-  padding: 12px 24px;
+  padding: 12px 10px;
+
   font-size: 14px;
   font-weight: 600;
   color: #374151;
   border-bottom: 2px solid #e5e7eb;
-  
-  /* 👉 Keeps headers visible when scrolling down */
   position: sticky;
   top: 0;
-  background-color: white; 
+  background-color: white;
   z-index: 1;
+  white-space: nowrap;
 }
 
 .tableMSR td {
-  padding: 12px 24px;
-}
-.table-containerMSR {
-  width: 95.5%;
-  height: 500px; /* Adjust as needed */
-  overflow-y: auto; /* Enables vertical scrolling */
-  overflow-x: hidden;
+padding: 12px 10px;
 }
 
 .student-photo-thumbnail {
-  width: 100px;
-  height: 100px;
+  width: 50px;
+  height: 50px;
   min-width: 100px;
   min-height: 100px;
   object-fit: cover;
@@ -90,7 +88,7 @@
   gap: 8px;
   padding: 0 16px;
   border-radius: 8px;
-  border: 1px solid #E4E7EC;
+  border: 1px solid #e4e7ec;
   background-color: white;
   color: #0f0e54;
   font-size: 16px;
@@ -127,7 +125,7 @@
 
 /* 👉 A rich, darker blue for the hover effect */
 .add-student-btn:hover {
-  background-color: #0f0e54; 
+  background-color: #0f0e54;
 }
 
 .add-student-btn:active {
@@ -150,7 +148,7 @@
 }
 
 .close-btn:hover {
-  background-color: #0f0e54; 
+  background-color: #0f0e54;
 }
 
 .close-btn:active {

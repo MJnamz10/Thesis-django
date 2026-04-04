@@ -2,20 +2,22 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 70vh; /* Changed from 70vh to fill the screen properly */
+  height: calc(100vh - 85px); 
+  overflow: hidden; 
   padding: 0px 10%;
   max-width: 1600px;
-  margin: 0 auto; /* Centers the whole page */
+  margin: 0 auto; 
   gap: 0px;
 }
 
 /* Main content */
 .main {
-display: flex; /* Changed from 'grid' so it stretches vertically! */
+  display: flex; 
   flex-direction: column;
-  flex: 1; /* Pushes the main area to fill the screen */
+  flex: 1; 
   gap: 18px;
-  padding-bottom: 20px;
+  padding-bottom: 20px;  
+  min-height: 0; 
 }
 
 /* Top dashboard cards: responsive grid */
@@ -83,23 +85,25 @@ display: flex; /* Changed from 'grid' so it stretches vertically! */
 
 /* Middle big container */
 .container6 {
-display: flex;
+  display: flex;
   flex-direction: column;
-  flex: 1; /* Automatically takes up all leftover vertical space */
-  width: 100%;
+  flex: 1; 
+  width: 100%; 
+  min-height: 0; 
 }
-
 /* Bottom overview container */
 .dash-containers2 {
-display: flex;
+  display: flex;
   flex-direction: column;
-  flex: 1; /* Stretches the white box perfectly to the bottom */
+  flex: 1; 
   width: 100%;
   background-color: white;
   border-radius: 14px;
   padding: 30px;
   box-sizing: border-box;
-  gap: 14px;
+  gap: 14px;  
+  min-height: 0;
+  overflow-y: auto; 
 }
 
 .dash-header {
