@@ -487,7 +487,10 @@ export default function ManageStudentRecords() {
                 }}
               >
                 <img
-                  src={getFullImageUrl(selectedDetailStudent.photo)}
+                  src={getFullImageUrl(
+                    selectedDetailStudent.photo,
+                    selectedDetailStudent.full_name,
+                  )}
                   alt={selectedDetailStudent.full_name}
                   style={{
                     width: "120px",
@@ -679,7 +682,8 @@ export default function ManageStudentRecords() {
                 />
               </div>
 
-              <button className="close-btn"
+              <button
+                className="close-btn"
                 onClick={() => setSelectedDetailStudent(null)}
               >
                 Close

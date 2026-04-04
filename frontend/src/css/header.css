@@ -171,7 +171,7 @@ width: 80%;
 .item {
   flex: 1;
   background-color: #fce8b2;
-  height: 80%;
+  height: 100%;
   font-size: 16px;
   color: #1c398e90;
 }
@@ -181,22 +181,7 @@ width: 80%;
   height: 90%; /* Gives it a satisfying "lift" toward the top */
 }
 
-/* 👉 THE MAGIC TRICK: Tells the tab to start small and grow! */
-@keyframes growActiveTab {
-  0% {
-    flex: 1;
-    height: 80%;
-    font-size: 16px;
-  }
-  100% {
-    flex: 1.7;
-    height: 100%;
-    font-size: 20px;
-  }
-}
-
 .active-item {
-  flex: 1.8;
   height: 100%;
   font-size: 20px;
   background-color: #fbb316 !important;
