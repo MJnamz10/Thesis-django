@@ -418,7 +418,7 @@ export default function Dashboard() {
                                     ? "#22c55e" // green
                                     : !scan.full_name ||
                                         scan.id_number === "Not in Masterlist"
-                                      ? "#9ca3af" // gray for INVALID
+                                      ? "#000000" // gray for INVALID
                                       : "#ff0000", // red for other cases (optional)
                               }}
                             >
