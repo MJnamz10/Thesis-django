@@ -4,7 +4,7 @@ import { UserPen, Wifi, Clock, LayoutDashboard, ClipboardList } from "lucide-rea
 import AdminMenu from "./AdminMenu.jsx"; 
 import "../css/header.css";
 
-export default function Header() {
+export default function Header({scannerOnline = false}) {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -48,11 +48,10 @@ export default function Header() {
         <div className="header-middle">
           <div className="campus-title">
             <span className="ustp-text">USTP | CDO Campus</span>
-            <span className="online-dot"></span>
           </div>
           <div className="campus-subtitle">
-            <Wifi size={16} className="wifi-icon" />
-            <span className="scanner-status">QR Scanner: Online</span>
+            <Wifi size={16} className={scannerOnline ? "wifi-icon-online" : "wifi-icon-offline"} />
+            <span className={scannerOnline ? "scanner-status-online" : "scanner-status-offline"}>QR Scanner: <strong>{scannerOnline ? "Online" : "Offline"}</strong></span>
             <span className="separator">•</span>
             <span className="school-name">University of Science and Technology of Southern Philippines</span>
           </div>

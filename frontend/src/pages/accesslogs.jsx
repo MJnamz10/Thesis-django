@@ -13,6 +13,8 @@ export default function AccessLogs() {
 
   const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
+  const [scannerOnline, setScannerOnline] = useState(false); // State to track QR scanner status
+
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,13 +65,26 @@ export default function AccessLogs() {
 
   useEffect(() => {
     fetchLogs(true);
+    fetchScannerStatus();
 
     const interval = setInterval(() => {
       fetchLogs(false);
+      fetchScannerStatus(); // Regularly update scanner status every 3 seconds
     }, 3000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const fetchScannerStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/verifid/dashboard-data`);
+      const data = await response.json();
+      setScannerOnline(data.scannerOnline);
+    } catch (error) {
+      console.error("Error fetching scanner status:", error);
+      setScannerOnline(false);
+    }
+  };
 
   const fetchLogs = async (showLoader = false) => {
     try {
@@ -198,7 +213,7 @@ export default function AccessLogs() {
 
   return (
     <>
-      <Header />
+      <Header scannerOnline={scannerOnline}/>
       <div className="page">
         {/* Main Content Area */}
         <div className="container2AL">

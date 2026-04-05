@@ -8,6 +8,7 @@ export default function Dashboard() {
   document.title = "Dashboard | Verifid";
   const navigate = useNavigate();
   const location = useLocation();
+  const [scannerOnline, setScannerOnline] = useState(false); // State to track QR scanner status
 
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -48,6 +49,8 @@ export default function Dashboard() {
 
       const data = await response.json();
 
+      setScannerOnline(data.scannerOnline); // Update QR scanner status
+
       setStats({
         totalStudents: data.stats?.totalStudents || 0,
         verifiedToday: data.stats?.verifiedToday || 0,
@@ -58,6 +61,7 @@ export default function Dashboard() {
       setRecentScans(data.recentScans || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      setScannerOnline(false); // Assume scanner is offline if there's an error fetching data
     } finally {
       setLoading(false);
     }
@@ -74,7 +78,7 @@ export default function Dashboard() {
   }, []);
   return (
     <>
-      <Header />
+      <Header scannerOnline={scannerOnline} />
       <div className="page">
         <main className="main">
 <section className="dash-containers">

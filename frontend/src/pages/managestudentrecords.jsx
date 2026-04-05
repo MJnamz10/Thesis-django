@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useStudents from "../hooks/useStudents";
 import "../css/managestudentrecords.css";
@@ -21,7 +21,7 @@ import AddStudentModal from "./AddStudentModal";
 import Header from "./Header.jsx";
 
 export default function ManageStudentRecords() {
-    document.title = "Manage Student Records | Verifid";
+  document.title = "Manage Student Records | Verifid";
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,6 +29,8 @@ export default function ManageStudentRecords() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
+
+  const [scannerOnline, setScannerOnline] = useState(false); // State to track QR scanner status
 
   const { students, loading, refresh } = useStudents();
   // Security Modal States
@@ -209,9 +211,28 @@ export default function ManageStudentRecords() {
       setDeleteError("Network error. Please check if the server is running.");
     }
   };
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/verifid/dashboard-data`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const data = await response.json();
+        // Use the same key 'scannerOnline' used in the Dashboard
+        setScannerOnline(data.scannerOnline); 
+      } catch (error) {
+        console.error("Error fetching scanner status:", error);
+        setScannerOnline(false);
+      }
+    };
+    
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <>
-      <Header />
+      <Header scannerOnline={scannerOnline} />
       <div className="page">
         <div className="container2MSR">
           <div
