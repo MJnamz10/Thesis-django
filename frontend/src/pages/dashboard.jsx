@@ -32,15 +32,25 @@ export default function Dashboard() {
     return val;
   };
 
-  const getPhotoSrc = (photo) => {
-    if (!photo) return "/images/default-avatar.png";
-    if (photo.startsWith("http")) return photo;
-    return `${import.meta.env.VITE_API_BASE}${photo}`;
+  const getPhotoSrc = (photo, fullName) => {
+    // 1. If photo exists, return it
+    if (photo) {
+      if (photo.startsWith("http")) return photo;
+      return `${import.meta.env.VITE_API_BASE}${photo}`;
+    }
+
+    // 2. If no photo, but we have a name, generate an avatar
+    if (fullName && fullName !== "Not in Masterlist") {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+    }
+
+    // 3. Absolute fallback just in case a record has no name and no photo
+    return "/images/default-avatar.png";
   };
 
   const fetchDashboardData = async (showLoading = false) => {
     try {
-      if (showLoading) {setLoading(true);} // Only show loading state on initial fetch or when explicitly requested
+      if (showLoading) {setLoading(true);} 
 
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE}/api/verifid/dashboard-data`,
@@ -49,7 +59,7 @@ export default function Dashboard() {
 
       const data = await response.json();
 
-      setScannerOnline(data.scannerOnline); // Update QR scanner status
+      setScannerOnline(data.scannerOnline); 
 
       setStats({
         totalStudents: data.stats?.totalStudents || 0,
@@ -61,7 +71,7 @@ export default function Dashboard() {
       setRecentScans(data.recentScans || []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      setScannerOnline(false); // Assume scanner is offline if there's an error fetching data
+      setScannerOnline(false); 
     } finally {
       setLoading(false);
     }
@@ -76,12 +86,13 @@ export default function Dashboard() {
 
     return () => clearInterval(interval);
   }, []);
+
   return (
     <>
       <Header scannerOnline={scannerOnline} />
       <div className="page">
         <main className="main">
-<section className="dash-containers">
+          <section className="dash-containers">
             
             {/* Card 1: Total Students */}
             <div className="dash-item">
@@ -160,12 +171,12 @@ export default function Dashboard() {
             </div>
 
               <div className="table-containerD">
-                <table className = "tableD" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <table className="tableD" style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
                       <th style={{ textAlign: "center" }}>Photo</th>
                       <th style={{ textAlign: "center" }}>Timestamp</th>
-                      <th style={{ textAlign: "center" }}>Timestamp</th>
+                      {/* Fixed: Removed duplicate Timestamp column here */}
                       <th style={{ textAlign: "center" }}>Student ID</th>
                       <th style={{ textAlign: "center" }}>Student Name</th>
                       <th style={{ textAlign: "center" }}>Program</th>
@@ -178,7 +189,7 @@ export default function Dashboard() {
                       <tr>
                         <td
                           colSpan="7"
-                          style={{ padding: "10px", color: "gray" }}
+                          style={{ padding: "10px", color: "gray", textAlign: "center" }}
                         >
                           Loading...
                         </td>
@@ -241,7 +252,8 @@ export default function Dashboard() {
                               </div>
                             ) : (
                               <img
-                                src={getPhotoSrc(scan.photo)}
+                                // FIXED: Passed scan.full_name as the second argument
+                                src={getPhotoSrc(scan.photo, scan.full_name)}
                                 alt={scan.full_name || "Student"}
                                 style={{
                                   width: "100px",
@@ -331,11 +343,11 @@ export default function Dashboard() {
                                   scan.validity === "VERIFIED" &&
                                   scan.full_name &&
                                   scan.id_number !== "Not in Masterlist"
-                                    ? "#22c55e" // green
+                                    ? "#22c55e" 
                                     : !scan.full_name ||
                                         scan.id_number === "Not in Masterlist"
-                                      ? "#000000" // gray for INVALID
-                                      : "#ff0000", // red for other cases (optional)
+                                      ? "#000000" 
+                                      : "#ff0000", 
                               }}
                             >
                               {!scan.full_name ||

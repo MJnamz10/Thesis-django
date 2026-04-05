@@ -23,10 +23,20 @@ export default function AccessLogs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  const getPhotoSrc = (photo) => {
-    if (!photo) return "/images/default-avatar.png";
-    if (photo.startsWith("http")) return photo;
-    return `${API_BASE}${photo}`;
+  // Updated function to generate initials similar to ManageStudentRecords
+  const getPhotoSrc = (photo, fullName) => {
+    // 1. If they uploaded a real photo, always use it!
+    if (photo) {
+      return photo.startsWith("http") ? photo : `${API_BASE}${photo}`;
+    }
+
+    // 2. If no photo, generate the initials!
+    if (fullName && fullName !== "Not in Masterlist") {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+    }
+
+    // 3. Absolute fallback just in case a record has no name and no photo
+    return "/images/default-avatar.png";
   };
 
   const isMissingRecord = (log) => {
@@ -213,7 +223,7 @@ export default function AccessLogs() {
 
   return (
     <>
-      <Header scannerOnline={scannerOnline}/>
+      <Header scannerOnline={scannerOnline} />
       <div className="page">
         {/* Main Content Area */}
         <div className="container2AL">
@@ -223,8 +233,7 @@ export default function AccessLogs() {
               justifyContent: "space-between",
               alignItems: "flex-start",
               marginBottom: "24px",
-              flexWrap:
-                "wrap" /* 👉 Lets the export buttons drop down if squeezed */,
+              flexWrap: "wrap" /* 👉 Lets the export buttons drop down if squeezed */,
               gap: "16px",
             }}
           >
@@ -245,28 +254,21 @@ export default function AccessLogs() {
                 Today
               </button>
 
-             <div className="date-filter-container">
-              
-              <input
-                type="date"
-                className="date-filter-input"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-              />
-              {selectedDate && (
-                <button
-                  className="date-clear-btn"
-                  onClick={clearDateFilter}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
+              <div className="date-filter-container">
+                <input
+                  type="date"
+                  className="date-filter-input"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                />
+                {selectedDate && (
+                  <button className="date-clear-btn" onClick={clearDateFilter}>
+                    Clear
+                  </button>
+                )}
+              </div>
 
-            <button
-                className="export-btn"
-                onClick={exportToCSV}
-              >
+              <button className="export-btn" onClick={exportToCSV}>
                 <Download size={16} /> Export CSV
               </button>
             </div>
@@ -416,7 +418,7 @@ export default function AccessLogs() {
                               </div>
                             ) : (
                               <img
-                                src={getPhotoSrc(log.photo)}
+                                src={getPhotoSrc(log.photo, log.full_name)}
                                 alt={log.full_name || "Student"}
                                 style={{
                                   width: "100px",
@@ -501,8 +503,8 @@ export default function AccessLogs() {
                                 !isMissing && log.status === "VERIFIED"
                                   ? "#22c55e" // green
                                   : log.status === "NOT VERIFIED"
-                                    ? "#ef4444"// red for not verified
-                                    : "#000000" , // black for invalid, not in masterlist, or missing data
+                                    ? "#ef4444" // red for not verified
+                                    : "#000000", // black for invalid, not in masterlist, or missing data
                             }}
                           >
                             {isMissing ? "INVALID" : log.status || "UNKNOWN"}
