@@ -124,7 +124,7 @@ export default function Login() {
               <input
                 type="email"
                 className="login-input"
-                placeholder="admin@ustp.edu.ph"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
