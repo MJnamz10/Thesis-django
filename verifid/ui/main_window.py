@@ -61,7 +61,6 @@ class MainWindow(QMainWindow):
         self.worker_busy = False
         self.latest_detection_time = 0.0
         self.detection_box_ttl = 0.6
-
         self._setup_worker()
 
         self.setup_ui()
@@ -554,6 +553,8 @@ class MainWindow(QMainWindow):
         frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
+
+        #qimg = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888).copy()
         qimg = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
         pix = QPixmap.fromImage(qimg).scaled(
@@ -580,24 +581,8 @@ class MainWindow(QMainWindow):
         self.latest_detection_time = time.time()
 
         # 🔥 FORCE SYNC: draw boxes on stored frame
-        if self.last_display_frame is not None and self.last_submitted_frame is not None:
-            synced_frame = self.scan_manager.draw_boxes(
-                self.last_display_frame.copy(),
-                self.latest_detections,
-                self.last_submitted_frame.shape
-            )
-
-            frame_rgb = cv2.cvtColor(synced_frame, cv2.COLOR_BGR2RGB)
-            h, w, ch = frame_rgb.shape
-            qimg = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
-
-            pix = QPixmap.fromImage(qimg).scaled(
-                self.preview.size(),
-                Qt.KeepAspectRatio,
-                Qt.FastTransformation
-            )
-
-            self.preview.setPixmap(pix)
+        
+        
 
         print(f"[UI] Worker returned {len(self.latest_detections)} detections")
 

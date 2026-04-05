@@ -13,9 +13,12 @@ class CameraService:
         if not self.cap.isOpened():
             return False
 
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        self.cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAPTURE_WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAPTURE_HEIGHT)
-        self.cap.set(cv2.CAP_PROP_FPS, 15)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
         return True
 
     def read(self):

@@ -31,8 +31,12 @@ DEVICE = "cpu"
 # Camera Settings
 # -----------------------------
 CAMERA_INDEX = 0
-CAPTURE_WIDTH = 3840
-CAPTURE_HEIGHT = 2160
+#CAPTURE_WIDTH = 3840
+#CAPTURE_HEIGHT = 2160
+
+CAPTURE_WIDTH = 800
+CAPTURE_HEIGHT = 600
+
 
 # Detection resolution
 DETECT_WIDTH = 416
@@ -51,7 +55,7 @@ YOLO_IMGSZ = 416
 # -----------------------------
 # Processing Control
 # -----------------------------
-PROCESS_EVERY_N_FRAMES = 6
+PROCESS_EVERY_N_FRAMES = 6 #origiinal
 SCAN_COOLDOWN_MS = 5000
 
 # -----------------------------
