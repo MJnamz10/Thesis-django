@@ -149,16 +149,17 @@ export default function ManageStudentRecords() {
     setSelectedStudent(null);
   };
 
-  const filteredStudents = students.filter((student) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      student.full_name.toLowerCase().includes(query) ||
-      student.id_number.toLowerCase().includes(query) ||
-      student.program.toLowerCase().includes(query)
-    );
-  });
+  const filteredStudents = students
+    .filter((student) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        student.full_name.toLowerCase().includes(query) ||
+        student.id_number.toLowerCase().includes(query) ||
+        student.program.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
-  // Opens the modal instead of the browser popup
   const handleDeleteClick = (student) => {
     setStudentToDelete(student);
     setAdminPassword(""); // Clear old passwords
