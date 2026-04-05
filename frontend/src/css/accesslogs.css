@@ -213,3 +213,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 100%;
   table-layout: fixed;
 }
+.clickable-row {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.clickable-row:hover {
+  background-color: #F3F4F6; /* A subtle light gray */
+}

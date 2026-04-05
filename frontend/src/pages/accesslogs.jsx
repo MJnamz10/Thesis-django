@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../css/accesslogs.css";
-// Added Calendar, Download, and Search icons from lucide-react
-import { UserPen, Calendar, Download, Search } from "lucide-react";
+import { UserPen, Calendar, Download, Search, GraduationCap, CalendarDays, Users, Hash } from "lucide-react";
 import Header from "./Header.jsx";
 import "../css/dashboard.css";
+// 👉 NEW: Import the students hook
+import useStudents from "../hooks/useStudents"; 
 
 export default function AccessLogs() {
   document.title = "Access Logs | Verifid";
@@ -13,29 +14,28 @@ export default function AccessLogs() {
 
   const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
-  const [scannerOnline, setScannerOnline] = useState(false); // State to track QR scanner status
+  const [scannerOnline, setScannerOnline] = useState(false);
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // 👉 NEW: Bring in the live masterlist database
+  const { students } = useStudents();
 
   // Filters
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+  
+  const [selectedDetailLog, setSelectedDetailLog] = useState(null);
 
-  // Updated function to generate initials similar to ManageStudentRecords
-  const getPhotoSrc = (photo, fullName) => {
-    // 1. If they uploaded a real photo, always use it!
-    if (photo) {
-      return photo.startsWith("http") ? photo : `${API_BASE}${photo}`;
+  const getFullImageUrl = (path, fullName) => {
+    if (path) {
+      return path.startsWith("http") ? path : `${API_BASE}${path}`;
     }
-
-    // 2. If no photo, generate the initials!
     if (fullName && fullName !== "Not in Masterlist") {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
     }
-
-    // 3. Absolute fallback just in case a record has no name and no photo
     return "/images/default-avatar.png";
   };
 
@@ -79,7 +79,7 @@ export default function AccessLogs() {
 
     const interval = setInterval(() => {
       fetchLogs(false);
-      fetchScannerStatus(); // Regularly update scanner status every 3 seconds
+      fetchScannerStatus();
     }, 3000);
 
     return () => clearInterval(interval);
@@ -121,7 +121,6 @@ export default function AccessLogs() {
     return logs.filter((log) => {
       const isMissing = isMissingRecord(log);
 
-      // Status filter
       const matchesStatus =
         activeFilter === "All"
           ? true
@@ -131,7 +130,6 @@ export default function AccessLogs() {
               ? isMissing || log.status !== "VERIFIED"
               : true;
 
-      // Search filter
       const studentName = (log.full_name || "").toLowerCase();
       const studentId = String(log.id_number || "").toLowerCase();
       const studentProgram = String(
@@ -148,7 +146,6 @@ export default function AccessLogs() {
         studentProgram.includes(search) ||
         programYear.includes(search);
 
-      // Date filter
       const logDate = getLogDateInManila(log);
       const matchesDate = !selectedDate || logDate === selectedDate;
 
@@ -225,7 +222,6 @@ export default function AccessLogs() {
     <>
       <Header scannerOnline={scannerOnline} />
       <div className="page">
-        {/* Main Content Area */}
         <div className="container2AL">
           <div
             style={{
@@ -233,7 +229,7 @@ export default function AccessLogs() {
               justifyContent: "space-between",
               alignItems: "flex-start",
               marginBottom: "24px",
-              flexWrap: "wrap" /* 👉 Lets the export buttons drop down if squeezed */,
+              flexWrap: "wrap",
               gap: "16px",
             }}
           >
@@ -354,7 +350,7 @@ export default function AccessLogs() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       style={{ textAlign: "center", padding: "20px" }}
                     >
                       Loading...
@@ -363,7 +359,7 @@ export default function AccessLogs() {
                 ) : filteredLogs.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       style={{ textAlign: "center", padding: "20px" }}
                     >
                       No logs found.
@@ -374,7 +370,31 @@ export default function AccessLogs() {
                     const isMissing = isMissingRecord(log);
 
                     return (
-                      <tr key={log.id}>
+                      <tr 
+                        key={log.id}
+className={isMissing ? "" : "clickable-row"}                        onClick={() => {
+                          if (!isMissing) {
+                            // Find the live student in the master list
+                            const liveStudentData = students.find(
+                              (s) => s.id_number === log.id_number
+                            );
+
+                            if (liveStudentData) {
+                              // Merge log data with live data. We force log.status to persist.
+                              setSelectedDetailLog({
+                                ...log, 
+                                ...liveStudentData,
+                                status: log.status,
+                                created_at: log.created_at
+                              });
+                            } else {
+                              // Fallback to purely log data if they aren't in the live DB anymore
+                              setSelectedDetailLog(log);
+                            }
+                          }
+                        }}
+                        style={{ cursor: isMissing ? "default" : "pointer" }}
+                      >
                         <td
                           style={{
                             borderBottom: "2px solid #ECECF0",
@@ -418,7 +438,7 @@ export default function AccessLogs() {
                               </div>
                             ) : (
                               <img
-                                src={getPhotoSrc(log.photo, log.full_name)}
+                                src={getFullImageUrl(log.photo, log.full_name)}
                                 alt={log.full_name || "Student"}
                                 style={{
                                   width: "100px",
@@ -486,6 +506,7 @@ export default function AccessLogs() {
                             : `${log.program} ${log.year_level}`}
                         </td>
 
+
                         <td
                           style={{
                             textAlign: "center",
@@ -501,10 +522,10 @@ export default function AccessLogs() {
                               color: "white",
                               backgroundColor:
                                 !isMissing && log.status === "VERIFIED"
-                                  ? "#22c55e" // green
+                                  ? "#22c55e"
                                   : log.status === "NOT VERIFIED"
-                                    ? "#ef4444" // red for not verified
-                                    : "#000000", // black for invalid, not in masterlist, or missing data
+                                    ? "#ef4444"
+                                    : "#000000",
                             }}
                           >
                             {isMissing ? "INVALID" : log.status || "UNKNOWN"}
@@ -518,6 +539,222 @@ export default function AccessLogs() {
             </table>
           </div>
         </div>
+
+        {selectedDetailLog && (
+          <div
+            onClick={() => setSelectedDetailLog(null)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.7)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 9999,
+              cursor: "zoom-out",
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                padding: "24px",
+                borderRadius: "16px",
+                width: "480px",
+                display: "flex",
+                flexDirection: "column",
+                cursor: "default",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "20px",
+                }}
+              >
+                <div>
+                  <h2 style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}>
+                    Student Details
+                  </h2>
+                  <p style={{ fontSize: "14px", color: "gray", margin: "4px 0 0 0" }}>
+                    Information from Access Log
+                  </p>
+                </div>
+                <button
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "24px",
+                    cursor: "pointer",
+                    color: "gray",
+                  }}
+                  onClick={() => setSelectedDetailLog(null)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  color: "#101828",
+                }}
+              >
+                <img
+                  src={getFullImageUrl(selectedDetailLog.photo, selectedDetailLog.full_name)}
+                  alt={selectedDetailLog.full_name}
+                  style={{
+                    width: "120px",
+                    height: "120px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    marginBottom: "16px",
+                  }}
+                  onError={(e) => {
+                    e.target.src = "/images/default-avatar.png";
+                  }}
+                />
+                <h3 style={{ fontSize: "20px", fontWeight: "bold", margin: "0" }}>
+                  {selectedDetailLog.full_name}
+                </h3>
+                <p style={{ fontSize: "14px", color: "gray", margin: "8px 0 16px 0" }}>
+                  {selectedDetailLog.id_number}
+                </p>
+
+                <div
+                  style={{
+                    backgroundColor:
+                      selectedDetailLog.status === "VERIFIED"
+                        ? "#EBF8F2"
+                        : selectedDetailLog.status === "INVALID"
+                          ? "#FEEDEA"
+                          : "#F2F4F7",
+                    color:
+                      selectedDetailLog.status === "VERIFIED"
+                        ? "#1B9B62"
+                        : selectedDetailLog.status === "INVALID"
+                          ? "#CB2B21"
+                          : "#616161",
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    marginBottom: "20px",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {selectedDetailLog.status ? selectedDetailLog.status.replace("_", " ") : "UNKNOWN"}
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "24px 16px",
+                  marginBottom: "20px",
+                  width: "100%",
+                  padding: "0 16px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ color: "#155DFC" }}>
+                    <GraduationCap size={20} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "12px", color: "gray" }}>Program</span>
+                    <span style={{ fontSize: "16px", fontWeight: "500", color: "#101828" }}>
+                      {selectedDetailLog.program || "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ color: "#155DFC" }}>
+                    <CalendarDays size={20} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "12px", color: "gray" }}>Year Level</span>
+                    <span style={{ fontSize: "16px", fontWeight: "500", color: "#101828" }}>
+                      {{
+                        1: "1st Year",
+                        2: "2nd Year",
+                        3: "3rd Year",
+                        4: "4th Year",
+                        5: "5th Year",
+                      }[selectedDetailLog.year_level] || selectedDetailLog.year_level || "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ color: "#155DFC" }}>
+                    <Users size={20} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "12px", color: "gray" }}>Gender</span>
+                    <span style={{ fontSize: "16px", fontWeight: "500", color: "#101828" }}>
+                      {selectedDetailLog.gender || "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ color: "#155DFC" }}>
+                    <Hash size={20} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "12px", color: "gray" }}>Age</span>
+                    <span style={{ fontSize: "16px", fontWeight: "500", color: "#101828" }}>
+                      {selectedDetailLog.age || "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                {selectedDetailLog.qr_code ? (
+                  <img
+                    src={getFullImageUrl(selectedDetailLog.qr_code)}
+                    alt="Zoomed Student QR"
+                    style={{
+                      width: "200px",
+                      height: "200px",
+                      marginBottom: "20px",
+                      objectFit: "contain",
+                    }}
+                  />
+                ) : (
+                  <span style={{ fontSize: "14px", color: "gray", marginBottom: "20px" }}>
+                    No QR Code Available
+                  </span>
+                )}
+              </div>
+
+              <button className="close-btn" onClick={() => setSelectedDetailLog(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
