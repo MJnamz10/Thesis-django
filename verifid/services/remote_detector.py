@@ -4,7 +4,7 @@ import json
 import websocket
 
 # 🔥 Notice the ws:// instead of http://
-SERVER_URL = "ws://192.168.1.18:8000/ws/detect/"
+SERVER_URL = "ws://192.168.89.160:8000/ws/detect/" 
 
 class RemoteDetector:
     def __init__(self):
