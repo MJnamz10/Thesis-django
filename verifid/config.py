@@ -67,7 +67,7 @@ MIN_QR_HEIGHT = 60
 MIN_SHARPNESS = 20.0
 
 # Only decode the top-N detections
-MAX_DETECTIONS_TO_DECODE = 4
+MAX_DETECTIONS_TO_DECODE = 10
 
 # -----------------------------
 # Preprocessing
