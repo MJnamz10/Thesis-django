@@ -34,13 +34,13 @@ CAMERA_INDEX = 0
 #CAPTURE_WIDTH = 3840
 #CAPTURE_HEIGHT = 2160
 
-CAPTURE_WIDTH = 800
-CAPTURE_HEIGHT = 600
+CAPTURE_WIDTH = 1920#3840 #800
+CAPTURE_HEIGHT = 1080#2160 #600
 
 
 # Detection resolution
-DETECT_WIDTH = 416
-DETECT_HEIGHT = 416
+DETECT_WIDTH = 1080#416
+DETECT_HEIGHT = 1080#416
 
 # Preview/display resolution
 DISPLAY_WIDTH = 640
@@ -56,7 +56,7 @@ YOLO_IMGSZ = 416
 # Processing Control
 # -----------------------------
 PROCESS_EVERY_N_FRAMES = 6 #origiinal
-SCAN_COOLDOWN_MS = 5000
+SCAN_COOLDOWN_MS = 0#5000
 
 # -----------------------------
 # Crop / Quality Gate

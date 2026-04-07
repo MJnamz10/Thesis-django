@@ -2,6 +2,7 @@
 import cv2
 import json
 import websocket
+from config import DETECT_WIDTH, DETECT_HEIGHT
 
 # 🔥 Notice the ws:// instead of http://
 SERVER_URL = "ws://192.168.89.160:8000/ws/detect/" 
@@ -31,7 +32,7 @@ class RemoteDetector:
             h4k, w4k = frame_4k.shape[:2]
 
             # 1. Resize BEFORE sending to save bandwidth
-            frame_small = cv2.resize(frame_4k, (416, 416))
+            frame_small = cv2.resize(frame_4k, (DETECT_WIDTH, DETECT_HEIGHT))
             #frame_small = cv2.resize(frame_4k, (640, 640))
 
             # 2. Compress to JPEG
@@ -46,8 +47,8 @@ class RemoteDetector:
             detections = data.get("detections", [])
 
             # 5. Scale back to 4K
-            scale_x = w4k / 416
-            scale_y = h4k / 416
+            scale_x = w4k / DETECT_WIDTH
+            scale_y = h4k / DETECT_HEIGHT
 
             results = []
             for det in detections:
