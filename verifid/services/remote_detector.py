@@ -2,10 +2,10 @@
 import cv2
 import json
 import websocket
-from config import DETECT_WIDTH, DETECT_HEIGHT
+from config import DETECT_WIDTH, DETECT_HEIGHT, REMOTE_DETECTOR_URL
 
-# 🔥 Notice the ws:// instead of http://
-SERVER_URL = "ws://192.168.89.160:8000/ws/detect/" 
+
+SERVER_URL = REMOTE_DETECTOR_URL
 
 class RemoteDetector:
     def __init__(self):

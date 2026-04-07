@@ -39,8 +39,8 @@ CAPTURE_HEIGHT = 1080#2160 #600
 
 
 # Detection resolution
-DETECT_WIDTH = 1080#416
-DETECT_HEIGHT = 1080#416
+DETECT_WIDTH = 640 #1080#416
+DETECT_HEIGHT = 640  #1080#416
 
 # Preview/display resolution
 DISPLAY_WIDTH = 640
@@ -76,4 +76,8 @@ UPSCALE_FACTOR = 3.0
 CLAHE_CLIP_LIMIT = 2.0
 CLAHE_TILE_GRID_SIZE = (8, 8)
 
-REMOTE_DETECTOR_URL = "http://192.168.x.x:8000"
+# -----------------------------
+# Remote Detector - YOLO SERVER 
+# -----------------------------
+# 🔥 Notice the ws:// instead of http://
+REMOTE_DETECTOR_URL = "ws://192.168.89.160:8000/ws/detect/" 
