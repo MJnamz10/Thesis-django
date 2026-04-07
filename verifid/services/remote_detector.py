@@ -35,8 +35,9 @@ class RemoteDetector:
             frame_small = cv2.resize(frame_4k, (DETECT_WIDTH, DETECT_HEIGHT))
             #frame_small = cv2.resize(frame_4k, (640, 640))
 
-            # 2. Compress to JPEG
-            _, img_encoded = cv2.imencode(".jpg", frame_small, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+            # 2. Compress to JPEG with lower quality (saves massive bandwidth)
+            # 50-60 is usually a sweet spot for YOLO box detection
+            _, img_encoded = cv2.imencode(".jpg", frame_small, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
 
             # 3. 🔥 Send raw bytes down the WebSocket (No HTTP Headers!)
             self.ws.send_binary(img_encoded.tobytes())

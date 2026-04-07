@@ -361,7 +361,8 @@ class MainWindow(QMainWindow):
                     f"created_at={row.get('created_at')}"
                 )
             print("==================\n")
-            
+
+            self.table.setUpdatesEnabled(False)
             self.table.setRowCount(0)
 
             for row in reversed(rows):
@@ -409,6 +410,9 @@ class MainWindow(QMainWindow):
                 )
 
             print(f"Loaded {len(rows)} logs for today.")
+            
+            # Re-enable repaints once finished
+            self.table.setUpdatesEnabled(True)
 
         except Exception as e:
             print("Failed to load saved logs:", e)
@@ -536,10 +540,12 @@ class MainWindow(QMainWindow):
         self.frame_counter += 1
         self.latest_source_shape = frame_4k.shape
 
+        # 1. Resize EXACTLY to the preview size using a faster interpolation
+        # INTER_NEAREST or INTER_LINEAR is much faster than INTER_AREA for previews
         display_frame = cv2.resize(
             frame_4k,
-            (DISPLAY_WIDTH, DISPLAY_HEIGHT),
-            interpolation=cv2.INTER_AREA
+            (720, 540), 
+            interpolation=cv2.INTER_LINEAR 
         )
 
         box_age = time.time() - self.latest_detection_time
@@ -554,14 +560,10 @@ class MainWindow(QMainWindow):
         h, w, ch = frame_rgb.shape
         bytes_per_line = ch * w
 
-        #qimg = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888).copy()
         qimg = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
-        pix = QPixmap.fromImage(qimg).scaled(
-            self.preview.size(),
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation
-        )
+        # 2. REMOVE the .scaled() call here. Just set the pixmap directly.
+        pix = QPixmap.fromImage(qimg)
         self.preview.setPixmap(pix)
 
         should_submit = (self.frame_counter % PROCESS_EVERY_N_FRAMES == 0)
@@ -569,8 +571,11 @@ class MainWindow(QMainWindow):
         if should_submit and not self.worker_busy:
             self.worker_busy = True
 
-            self.last_submitted_frame = frame_4k.copy()
-            self.last_display_frame = display_frame.copy()
+            # 3. REMOVE .copy() 
+            # Copying a 24MB 4K numpy array every few frames chokes the CPU. 
+            # Python passes by reference, which is safe here since you don't mutate frame_4k.
+            self.last_submitted_frame = frame_4k 
+            self.last_display_frame = display_frame
 
             self.submit_frame.emit(self.last_submitted_frame)
 
