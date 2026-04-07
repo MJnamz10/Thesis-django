@@ -348,7 +348,7 @@ class MainWindow(QMainWindow):
 
     def load_saved_logs(self):
         try:
-            rows = self.api.get_today_logs(limit=200)
+            rows = self.api.get_today_logs(limit=50)
             print("\n=== TODAY LOGS ===")
             for i, row in enumerate(rows, start=1):
                 print(
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
                 )
 
             print(f"Loaded {len(rows)} logs for today.")
-            
+
             # Re-enable repaints once finished
             self.table.setUpdatesEnabled(True)
 
