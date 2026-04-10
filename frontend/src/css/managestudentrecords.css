@@ -154,3 +154,88 @@ padding: 12px 10px;
 .close-btn:active {
   transform: scale(0.96);
 }
+
+.kebab-menu {
+  width: 4px;
+  height: 4px;
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  margin: auto; /* Centering for demo */
+}
+
+.kebab-menu::before,
+.kebab-menu::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  background-color: #333;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+}
+
+/* Positioning the top dot */
+.kebab-menu::before {
+  top: -8px;
+}
+
+/* Positioning the bottom dot */
+.kebab-menu::after {
+  bottom: -8px;
+}
+
+/* --- KEBAB MENU DROPDOWN STYLES --- */
+.kebab-dropdown {
+  position: absolute;
+  top: calc(100% + 4px); /* Puts it exactly below the icon */
+  right: 0;
+  background-color: #ffffff; /* Solid white background */
+  border: 1px solid #E4E7EC;
+  border-radius: 8px;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1); /* Beautiful floating shadow */
+  z-index: 9999; /* Forces it over the table */
+  min-width: 250px;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+}
+
+/* Individual buttons inside the menu */
+.kebab-dropdown button {
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%; /* Makes sure the whole row is clickable */
+}
+
+/* Gray background when hovering over an option */
+.kebab-dropdown button:hover {
+  background-color: #dddede; 
+}
+
+/* The line between options */
+.dropdown-divider {
+  height: 1px;
+  background-color: #E4E7EC;
+  margin: 4px 0;
+}
+
+/* Special styling for destructive actions */
+.kebab-dropdown .delete-option {
+  color: #dc2626;
+}
+
+.kebab-dropdown .delete-option:hover {
+  background-color: #FEF2F2; /* Light red background on hover */
+}

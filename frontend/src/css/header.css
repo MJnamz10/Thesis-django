@@ -19,7 +19,7 @@ body {
   flex-shrink: 0;
   background-color: #ffffff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-  border-bottom: 6px solid #1c398e;
+  border-bottom: 6px solid #ffffff;
 }
 
 /* --- 2. Top Row --- */
@@ -34,7 +34,7 @@ body {
 
 /* Logo */
 .header-left .logo {
-  width: clamp(140px, 12vw, 190px);
+  width: clamp(80px, 10vw, 150px);
   height: auto;
 }
 
@@ -53,7 +53,7 @@ body {
 }
 
 .ustp-text {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 800;
   color: #1c398e; /* The dark USTP Blue */
   letter-spacing: -0.5px;
@@ -116,7 +116,7 @@ body {
   display: flex;
   align-items: center;
   background-color:  #1c398e;/* #fbb316; /* Bright Yellow/Orange */
-  padding: 12px 20px;
+  padding: 8px 20px;
   border-radius: 12px;
   gap: 12px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
@@ -133,7 +133,7 @@ body {
 }
 
 .time {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: white;
   line-height: 1.1;
@@ -147,16 +147,16 @@ body {
 
 /* --- 3. Navigation Bar (The File Folder Tabs) --- */
 .container1 {
-width: 80%; 
+  width: 80%; 
   max-width: 1700px;
-    margin: 0 auto;
-  height: 45px; /* Height of the tabs */
+  margin: 0 auto;
+  height: 35px; /* Height of the tabs */
 
   background-color: transparent;
 
   display: flex;
-  align-items: flex-end; /* Pushes the tabs to sit flush on the bottom line */
-  gap: 0px; /* Tiny gap between the tabs */
+  /*align-items: center; /* Pushes the tabs to sit flush on the bottom line */
+  gap: 5px; /* Tiny gap between the tabs */
   padding: 0;
   box-sizing: border-box;
 }
@@ -170,7 +170,7 @@ width: 80%;
   gap: 12px;
 
   padding: 0 20px;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
@@ -185,7 +185,7 @@ width: 80%;
   flex: 1;
   background-color: #fce8b2;
   height: 100%;
-  font-size: 16px;
+  font-size: 14px;
   color: #1c398e90;
 }
 .item:hover {
@@ -196,7 +196,7 @@ width: 80%;
 
 .active-item {
   height: 100%;
-  font-size: 20px;
+  font-size: 16px;
   background-color: #fbb316 !important;
   color: #ffffff;
   
