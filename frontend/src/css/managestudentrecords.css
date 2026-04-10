@@ -26,7 +26,7 @@
      It forces the table to shrink and trigger the scrollbar 
      instead of stretching its parent container */
   min-height: 0;
-
+  border: 1px solid #e5e7eb;
   overflow-y: auto; /* Enables vertical scrolling */
   overflow-x: auto; /* Enables horizontal scrolling for small screens */
 }
@@ -61,8 +61,8 @@ padding: 12px 10px;
 .student-photo-thumbnail {
   width: 50px;
   height: 50px;
-  min-width: 100px;
-  min-height: 100px;
+  min-width: 50px;
+  min-height: 50px;
   object-fit: cover;
   border-radius: 20%;
   background-color: #f3f4f6;

@@ -441,8 +441,8 @@ className={isMissing ? "" : "clickable-row"}                        onClick={() 
                                 src={getFullImageUrl(log.photo, log.full_name)}
                                 alt={log.full_name || "Student"}
                                 style={{
-                                  width: "100px",
-                                  height: "100px",
+                                  width: "50px",
+                                  height: "50px",
                                   objectFit: "cover",
                                   borderRadius: "8px",
                                   border: "1px solid #E4E7EC",

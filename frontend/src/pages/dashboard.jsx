@@ -97,12 +97,12 @@ export default function Dashboard() {
             {/* Card 1: Total Students */}
             <div className="dash-item">
               <div className="card-top">
+                <span className="card-value">{loading ? "..." : stats.totalStudents}</span>
                 <div className="card-icon-wrapper">
                   <Users size={20} />
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.totalStudents}</span>
                 <span className="card-label">Total Students</span>
               </div>
             </div>
@@ -110,12 +110,13 @@ export default function Dashboard() {
             {/* Card 2: Successful Verifications */}
             <div className="dash-item">
               <div className="card-top">
+                <span className="card-value">{loading ? "..." : stats.verifiedToday}</span>
                 <div className="card-icon-wrapper">
                   <UserCheck size={20} />
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.verifiedToday}</span>
+                
                 <span className="card-label">Verified Students</span>
               </div>
             </div>
@@ -123,12 +124,13 @@ export default function Dashboard() {
             {/* Card 3: Failed Verifications */}
             <div className="dash-item">
               <div className="card-top">
+                <span className="card-value">{loading ? "..." : stats.unverifiedToday}</span>
                 <div className="card-icon-wrapper">
                   <UserX size={20} />
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.unverifiedToday}</span>
+                
                 <span className="card-label">Unverified Students</span>
               </div>
             </div>
@@ -136,12 +138,13 @@ export default function Dashboard() {
             {/* Card 4: Total Access Attempts */}
             <div className="dash-item">
               <div className="card-top">
+                <span className="card-value">{loading ? "..." : stats.trafficToday}</span>
                 <div className="card-icon-wrapper">
                   <TrendingUp size={20} />
                 </div>
               </div>
               <div className="card-bottom">
-                <span className="card-value">{loading ? "..." : stats.trafficToday}</span>
+                
                 <span className="card-label">Total Access Attempts</span>
               </div>
             </div>
@@ -256,8 +259,8 @@ export default function Dashboard() {
                                 src={getPhotoSrc(scan.photo, scan.full_name)}
                                 alt={scan.full_name || "Student"}
                                 style={{
-                                  width: "100px",
-                                  height: "100px",
+                                  width: "50px",
+                                  height: "50px",
                                   objectFit: "cover",
                                   borderRadius: "8px",
                                   border: "1px solid #E4E7EC",

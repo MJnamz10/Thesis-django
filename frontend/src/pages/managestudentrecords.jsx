@@ -793,7 +793,7 @@ export default function ManageStudentRecords() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="8"
+                      colSpan="11"
                       style={{ textAlign: "center", padding: "20px" }}
                     >
                       {searchQuery
@@ -844,250 +844,100 @@ export default function ManageStudentRecords() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "20px",
-                }}
-              >
+              {/* --- HEADER --- */}
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
                 <div>
-                  <h2
-                    style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}
-                  >
-                    Student Details
-                  </h2>
-                  <p
+                  <h2 style={{ fontSize: "22px", fontWeight: "bold", margin: 0 }}>Student Details</h2>
+                  <p style={{ fontSize: "13px", color: "gray", margin: "2px 0 0 0" }}>Complete student information</p>
+                </div>
+                <button style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "gray" }} onClick={() => setSelectedDetailStudent(null)}>✕</button>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              {/* --- TOP SECTION: PHOTO + NAME/ID/STATUS --- */}
+              <div style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "20px" }}>
+                <img
+                  src={getFullImageUrl(selectedDetailStudent.photo, selectedDetailStudent.full_name)}
+                  alt={selectedDetailStudent.full_name}
+                  style={{ width: "110px", height: "110px", borderRadius: "12px", objectFit: "cover", border: "1px solid #E4E7EC" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <h3 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#101828", textTransform: "uppercase" }}>
+                    {selectedDetailStudent.full_name}
+                  </h3>
+                  <p style={{ fontSize: "14px", color: "#667085", margin: 0 }}>{selectedDetailStudent.id_number}</p>
+                  <div
                     style={{
-                      fontSize: "14px",
-                      color: "gray",
-                      margin: "4px 0 0 0",
+                      marginTop: "8px",
+                      backgroundColor: selectedDetailStudent.validity_status === "VERIFIED" ? "#EBF8F2" : selectedDetailStudent.validity_status === "INVALID" ? "#FEEDEA" : "#F2F4F7",
+                      color: selectedDetailStudent.validity_status === "VERIFIED" ? "#1B9B62" : selectedDetailStudent.validity_status === "INVALID" ? "#CB2B21" : "#616161",
+                      padding: "4px 12px",
+                      borderRadius: "6px",
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      width: "fit-content",
+                      textAlign: "center"
                     }}
                   >
-                    Complete student information
-                  </p>
-                </div>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    cursor: "pointer",
-                    color: "gray",
-                  }}
-                  onClick={() => setSelectedDetailStudent(null)}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  color: "#101828",
-                }}
-              >
-                <img
-                  src={getFullImageUrl(
-                    selectedDetailStudent.photo,
-                    selectedDetailStudent.full_name,
-                  )}
-                  alt={selectedDetailStudent.full_name}
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    marginBottom: "16px",
-                  }}
-                  onError={(e) => {
-                    e.target.src = "/images/default-avatar.png";
-                  }}
-                />
-                <h3
-                  style={{ fontSize: "20px", fontWeight: "bold", margin: "0" }}
-                >
-                  {selectedDetailStudent.full_name}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "gray",
-                    margin: "8px 0 16px 0",
-                  }}
-                >
-                  {selectedDetailStudent.id_number}
-                </p>
-
-                <div
-                  style={{
-                    backgroundColor:
-                      selectedDetailStudent.validity_status === "VERIFIED"
-                        ? "#EBF8F2"
-                        : selectedDetailStudent.validity_status === "INVALID"
-                          ? "#FEEDEA"
-                          : "#F2F4F7",
-                    color:
-                      selectedDetailStudent.validity_status === "VERIFIED"
-                        ? "#1B9B62"
-                        : selectedDetailStudent.validity_status === "INVALID"
-                          ? "#CB2B21"
-                          : "#616161",
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                    marginBottom: "20px",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {selectedDetailStudent.validity_status.replace("_", " ")}
-                </div>
-              </div>
-
-              <div
-                style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-              />
-
-              {/* --- UPDATED: Perfect 2x2 Grid for Student Info --- */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "1fr 1fr" /* This creates two equal-width columns */,
-                  gap: "24px 16px" /* 24px vertical gap, 16px horizontal gap */,
-                  marginBottom: "20px",
-                  width: "100%",
-                  padding: "0 16px",
-                  boxSizing: "border-box",
-                }}
-              >
-                {/* 1. Program (Top Left) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <GraduationCap size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Program
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.program}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Year Level (Top Right) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <CalendarDays size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Year Level
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {{
-                        1: "1st Year",
-                        2: "2nd Year",
-                        3: "3rd Year",
-                        4: "4th Year",
-                        5: "5th Year",
-                      }[selectedDetailStudent.year_level] ||
-                        selectedDetailStudent.year_level}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Gender (Bottom Left) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <Users size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Gender
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.gender || "N/A"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4. Age (Bottom Right) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <Hash size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>Age</span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.age || "N/A"}
-                    </span>
+                    {selectedDetailStudent.validity_status.replace("_", " ")}
                   </div>
                 </div>
               </div>
 
-              <div
-                style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-              />
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
 
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
+              {/* --- GRID SECTION: PROGRAM, YEAR, GENDER, AGE --- */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                {/* Program */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <GraduationCap size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Program</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.program}</span>
+                  </div>
+                </div>
+                {/* Year Level */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <CalendarDays size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Year Level</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.year_level}</span>
+                  </div>
+                </div>
+                {/* Gender */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Users size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Gender</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.gender || "N/A"}</span>
+                  </div>
+                </div>
+                {/* Age */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Hash size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Age</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.age || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              {/* --- QR CODE --- */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
                 <img
                   src={getFullImageUrl(selectedDetailStudent.qr_code)}
-                  alt="Zoomed Student QR"
-                  style={{
-                    width: "200px",
-                    height: "200px",
-                    marginBottom: "20px",
-                    objectFit: "contain",
-                  }}
+                  alt="QR Code"
+                  style={{ width: "150px", height: "150px", objectFit: "contain" }}
                 />
               </div>
 
+              {/* --- CLOSE BUTTON --- */}
               <button
                 className="close-btn"
+                style={{ width: "100%", padding: "12px", borderRadius: "8px", fontWeight: "bold" }}
                 onClick={() => setSelectedDetailStudent(null)}
               >
                 Close
