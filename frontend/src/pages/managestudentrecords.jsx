@@ -117,23 +117,32 @@ export default function ManageStudentRecords() {
     }
   };
 
-  // Updated helper function to generate initials
+  // Get Image or Generate SVG of Initials
   const getFullImageUrl = (path, fullName) => {
-    // 1. If they uploaded a real photo, always use it!
+    // 1. Handle actual uploaded photos
     if (path) {
       return path.startsWith("http")
         ? path
         : `${import.meta.env.VITE_API_BASE}${path}`;
     }
 
-    // 2. If no photo, generate the initials!
+    // 2. SVG Approach for Initials (Zero Network Latency)
     if (fullName) {
-      // encodeURIComponent safely handles spaces (e.g., "Chris Abella" becomes "Chris%20Abella")
-      // We are using your school's blue theme (#1c398e) for the background!
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+      // Get first letter of first name and last name (e.g., "Jude Apus" -> "JA")
+      const nameParts = fullName.trim().split(" ");
+      const initials = nameParts.length > 1 
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : nameParts[0][0].toUpperCase();
+
+      // Generate a tiny SVG as a Data URI
+      // %23 is the URL-encoded version of # for the background color #1c398e
+      return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+        <rect width='128' height='128' fill='%231c398e'/>
+        <text x='50%' y='50%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>${initials}</text>
+      </svg>`;
     }
 
-    // 3. Absolute fallback just in case a record has no name and no photo
+    // 3. Fallback
     return "/images/default-avatar.png";
   };
 
