@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -188,3 +188,69 @@ def export_students_csv(request):
         ])
 
     return response
+
+# 1. Reset Validity (Bulk Update)
+@api_view(['POST'])
+@permission_classes([AllowAny]) # 👈 Added permission
+def bulk_reset_validity(request):
+    """
+    Resets the validity_status of ALL students to 'NOT_VERIFIED'.
+    """
+    try:
+        # 👈 CHANGED to 'NOT_VERIFIED' to match your import logic
+        updated_count = Student.objects.update(validity_status='NOT_VERIFIED')
+        return Response(
+            {"message": f"Successfully reset validity for {updated_count} students."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# 2. Delete Selected (Bulk Delete)
+@api_view(['POST'])
+@permission_classes([AllowAny]) # 👈 Added permission
+def bulk_delete_students(request):
+    """
+    Deletes students based on a list of IDs provided in the request body.
+    """
+    student_ids = request.data.get('ids', [])
+    
+    if not student_ids:
+        return Response(
+            {"error": "No student IDs provided for deletion."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        deleted_count, _ = Student.objects.filter(id_number__in=student_ids).delete()
+        return Response(
+            {"message": f"Successfully deleted {deleted_count} students."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+# 3. Danger: Delete All
+@api_view(['DELETE'])
+@permission_classes([AllowAny]) # 👈 Added permission
+def delete_all_students(request):
+    """
+    WIPES the entire Student table. 
+    """
+    try:
+        deleted_count, _ = Student.objects.all().delete()
+        return Response(
+            {"message": f"Database wiped. {deleted_count} records deleted."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
