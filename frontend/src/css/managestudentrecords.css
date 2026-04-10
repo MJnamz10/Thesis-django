@@ -1,18 +1,27 @@
+.page {
+  /* Use flex to allow children to grow */
+  display: flex; 
+  flex-direction: column;
+  /* Fill the viewport minus the Header height */
+  /* If your Header is roughly 80px, adjust accordingly */
+  height: calc(100vh - 130px); 
+  padding: 0px 140px; /* Horizontal padding for the container */
+  box-sizing: border-box;
+}
+
 .container2MSR {
   display: flex;
   flex-direction: column;
-  padding: 30px;
+  padding: 20px;
   box-sizing: border-box;
   width: 100%;
-  flex: 1;
 
-  /* 👉 THE FIX: Locks the box to the screen height so it cannot push the page down! */
-  max-height: calc(
-    100vh - 120px
-  ); /* 100vh is the full screen, minus your header space */
+  flex: 1;
+  min-height: 0;
   overflow: hidden; /* Stops anything inside from breaking out */
 
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;

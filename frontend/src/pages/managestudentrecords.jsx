@@ -513,7 +513,7 @@ export default function ManageStudentRecords() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              marginBottom: "24px",
+              marginBottom: "10px",
               flexWrap: "wrap",
               gap: "16px",
             }}
@@ -615,7 +615,7 @@ export default function ManageStudentRecords() {
           </div>
 
           {/* --- SEARCH & FILTER ROW --- */}
-          <div style={{ display: "flex", gap: "16px", marginBottom: "24px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "16px", marginBottom: "10px", flexWrap: "wrap" }}>
             
             {/* 1. Search Bar */}
             <div style={{ position: "relative", flex: 1, minWidth: "250px" }}>
@@ -833,7 +833,7 @@ export default function ManageStudentRecords() {
                   <tr>
                     <td
                       colSpan="11"
-                      style={{ textAlign: "center", padding: "20px" }}
+                      style={{ textAlign: "center", padding: "10px", height: "15vh", color: "gray", fontSize: "16px"  }}
                     >
                       {searchQuery
                         ? `No results found for "${searchQuery}"`

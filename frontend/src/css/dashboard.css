@@ -1,13 +1,13 @@
 /* Overall layout */
 .page {
-  display: flex;
+  /* Use flex to allow children to grow */
+  display: flex; 
   flex-direction: column;
-  height: calc(100vh - 85px); 
-  overflow: hidden; 
-  padding: 0px 10%;
-  max-width: 1600px;
-  margin: 0 auto; 
-  gap: 0px;
+  /* Fill the viewport minus the Header height */
+  /* If your Header is roughly 80px, adjust accordingly */
+  height: calc(100vh - 130px); 
+  padding: 0px 140px; /* Horizontal padding for the container */
+  box-sizing: border-box;
 }
 
 /* Main content */
@@ -15,8 +15,6 @@
   display: flex; 
   flex-direction: column;
   flex: 1; 
-  gap: 18px;
-  padding-bottom: 20px;  
   min-height: 0; 
 }
 
@@ -25,7 +23,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .dash-item {
@@ -36,16 +34,16 @@
   flex-direction: column;
   justify-content: space-between; /* Pushes icon up, text down */
   max-height: 100px; /* Slightly taller for the big numbers */
-  border: 1px solid #E4E7EC; /* Faint outline from Figma */
+  border: 2px solid #e5e7eb; 
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); /* Soft depth */
   box-sizing: border-box;
+
 }
 
 .card-top {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 160px;
+  justify-content: space-between;
   margin-bottom: 8px;
   width: 100%;
 }
@@ -103,9 +101,13 @@
   background-color: white;
   border-radius: 14px;
   padding: 15px 30px 15px 30px;
+  overflow: hidden; /* Stops anything inside from breaking out */
   box-sizing: border-box;
   gap: 14px;  
-  min-height: 0px;
+  min-height: 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 2px solid #e5e7eb;
 }
 
 .dash-header {

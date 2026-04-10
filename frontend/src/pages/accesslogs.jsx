@@ -29,12 +29,22 @@ export default function AccessLogs() {
   
   const [selectedDetailLog, setSelectedDetailLog] = useState(null);
 
+  // 👉 UPDATED: SVG Approach for Initials
   const getFullImageUrl = (path, fullName) => {
     if (path) {
       return path.startsWith("http") ? path : `${API_BASE}${path}`;
     }
+    
     if (fullName && fullName !== "Not in Masterlist") {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+      const nameParts = fullName.trim().split(" ");
+      const initials = nameParts.length > 1 
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : nameParts[0][0].toUpperCase();
+
+      return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+        <rect width='128' height='128' fill='%231c398e'/>
+        <text x='50%' y='50%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>${initials}</text>
+      </svg>`;
     }
     return "/images/default-avatar.png";
   };
@@ -228,7 +238,7 @@ export default function AccessLogs() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              marginBottom: "24px",
+              marginBottom: "10px",
               flexWrap: "wrap",
               gap: "16px",
             }}
@@ -275,7 +285,7 @@ export default function AccessLogs() {
               display: "flex",
               gap: "16px",
               alignItems: "center",
-              marginBottom: "24px",
+              marginBottom: "10px",
               flexWrap: "wrap",
             }}
           >
@@ -360,7 +370,7 @@ export default function AccessLogs() {
                   <tr>
                     <td
                       colSpan="7"
-                      style={{ textAlign: "center", padding: "20px" }}
+                      style={{ textAlign: "center", padding: "10px", color: "gray", height: "15vh", fontSize: "16px" }}
                     >
                       No logs found.
                     </td>
@@ -372,7 +382,8 @@ export default function AccessLogs() {
                     return (
                       <tr 
                         key={log.id}
-className={isMissing ? "" : "clickable-row"}                        onClick={() => {
+                        className={isMissing ? "" : "clickable-row"}                        
+                        onClick={() => {
                           if (!isMissing) {
                             // Find the live student in the master list
                             const liveStudentData = students.find(

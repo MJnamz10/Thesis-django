@@ -32,6 +32,7 @@ export default function Dashboard() {
     return val;
   };
 
+  // 👉 UPDATED: SVG Approach for Initials (Zero Network Requests)
   const getPhotoSrc = (photo, fullName) => {
     // 1. If photo exists, return it
     if (photo) {
@@ -39,9 +40,17 @@ export default function Dashboard() {
       return `${import.meta.env.VITE_API_BASE}${photo}`;
     }
 
-    // 2. If no photo, but we have a name, generate an avatar
+    // 2. Generate Local SVG if no photo but has a valid name
     if (fullName && fullName !== "Not in Masterlist") {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+      const nameParts = fullName.trim().split(" ");
+      const initials = nameParts.length > 1 
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : nameParts[0][0].toUpperCase();
+
+      return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+        <rect width='128' height='128' fill='%231c398e'/>
+        <text x='50%' y='50%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>${initials}</text>
+      </svg>`;
     }
 
     // 3. Absolute fallback just in case a record has no name and no photo
@@ -116,7 +125,6 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="card-bottom">
-                
                 <span className="card-label">Verified Students</span>
               </div>
             </div>
@@ -130,7 +138,6 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="card-bottom">
-                
                 <span className="card-label">Unverified Students</span>
               </div>
             </div>
@@ -144,7 +151,6 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="card-bottom">
-                
                 <span className="card-label">Total Access Attempts</span>
               </div>
             </div>
@@ -179,7 +185,6 @@ export default function Dashboard() {
                     <tr>
                       <th style={{ textAlign: "center" }}>Photo</th>
                       <th style={{ textAlign: "center" }}>Timestamp</th>
-                      {/* Fixed: Removed duplicate Timestamp column here */}
                       <th style={{ textAlign: "center" }}>Student ID</th>
                       <th style={{ textAlign: "center" }}>Student Name</th>
                       <th style={{ textAlign: "center" }}>Program</th>
@@ -204,9 +209,10 @@ export default function Dashboard() {
                           style={{
                             padding: "10px",
                             color: "gray",
+                            fontSize: "16px",
                             textAlign: "center",
                             verticalAlign: "middle",
-                            height: "37vh",
+                            height: "15vh",
                           }}
                         >
                           No scan records found.
@@ -255,7 +261,6 @@ export default function Dashboard() {
                               </div>
                             ) : (
                               <img
-                                // FIXED: Passed scan.full_name as the second argument
                                 src={getPhotoSrc(scan.photo, scan.full_name)}
                                 alt={scan.full_name || "Student"}
                                 style={{
