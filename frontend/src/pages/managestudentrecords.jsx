@@ -137,36 +137,69 @@ export default function ManageStudentRecords() {
     return "/images/default-avatar.png";
   };
 
-  // 👉 NEW: Triggers the download of the CSV file from Django
-  const handleExportClick = async () => {
+  // 👉 UPDATED: Generates the CSV directly from the filtered table data!
+  const handleExportClick = () => {
     try {
-      // 1. Fetch the file from our new Django URL
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE}/api/students/export/csv/`,
-        {
-          method: "GET",
-        },
-      );
+      if (filteredStudents.length === 0) {
+        alert("There are no students matching your filters to export.");
+        return;
+      }
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      // 1. Define the CSV headers (Matching your previous Django setup)
+      const headers = [
+        "ID Number", "Full Name", "Program", "Year Level", 
+        "Gender", "Age", "Validity Status", "Photo URL", "QR Code URL"
+      ];
 
-      // 2. Convert the response into a downloadable "Blob" (Binary Large Object)
-      const blob = await response.blob();
+      // Helper function to safely handle commas inside names (e.g., "Apus, Jude")
+      const escapeCsv = (str) => {
+        if (str === null || str === undefined) return "N/A";
+        const cleanStr = String(str);
+        if (cleanStr.includes(",") || cleanStr.includes('"') || cleanStr.includes("\n")) {
+          return `"${cleanStr.replace(/"/g, '""')}"`;
+        }
+        return cleanStr;
+      };
 
-      // 3. Create a temporary, invisible link in the browser to force the download
+      // 2. Loop through ONLY the filtered students to build the rows
+      const csvRows = filteredStudents.map((student) => {
+        const photoLink = student.photo ? getFullImageUrl(student.photo, student.full_name) : "No Photo";
+        const qrLink = student.qr_code ? getFullImageUrl(student.qr_code) : "No QR";
+
+        return [
+          escapeCsv(student.id_number),
+          escapeCsv(student.full_name),
+          escapeCsv(student.program),
+          escapeCsv(student.year_level),
+          escapeCsv(student.gender),
+          escapeCsv(student.age),
+          escapeCsv(student.validity_status),
+          escapeCsv(photoLink),
+          escapeCsv(qrLink),
+        ].join(",");
+      });
+
+      // 3. Combine headers and rows with line breaks
+      const csvContent = [headers.join(","), ...csvRows].join("\n");
+
+      // 4. Turn the string into a downloadable file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "VerifID_Student_Records.csv"; // The name of the file
-
-      // 4. Click the invisible link, then clean it up!
+      
+      // Give it a nice dynamic filename based on the date
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `VerifID_Filtered_Records_${dateStr}.csv`; 
+      
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export student records. Is the server running?");
+      alert("Failed to export student records.");
     }
   };
 
