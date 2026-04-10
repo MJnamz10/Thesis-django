@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(BASE_DIR / '.env')
 
 DEBUG = True 
-ALLOWED_HOSTS = ['192.168.1.19', 'localhost', '127.0.0.1', '192.168.1.22', 'backend', '10.22.180.162', '192.168.89.162'] #add raspis IPs here as needed
+ALLOWED_HOSTS = ['192.168.1.19', 'localhost', '127.0.0.1', '192.168.1.22', 'backend', '10.22.180.162', '192.168.89.162', '192.168.1.14'] #add raspis IPs here as needed
 
 # ==========================================
 DATABASES = {
@@ -85,7 +85,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://192.168.1.22:5173", # Add the Raspberry Pi's IP address with the correct port
     "http://10.22.180.162:5173", # Add the Raspberry Pi's IP address with the correct port
-    "http://192.168.89.162:5173" #khael27 ip add
+    "http://192.168.89.162:5173", #khael27 ip add
+    "http://192.168.1.14:5173"
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
