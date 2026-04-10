@@ -146,7 +146,7 @@ export default function ManageStudentRecords() {
     return "/images/default-avatar.png";
   };
 
-  // 👉 UPDATED: Generates the CSV directly from the filtered table data!
+  // 👉 UPDATED: Generates an Import-Ready CSV matching the database schema
   const handleExportClick = () => {
     try {
       if (filteredStudents.length === 0) {
@@ -154,15 +154,17 @@ export default function ManageStudentRecords() {
         return;
       }
 
-      // 1. Define the CSV headers (Matching your previous Django setup)
+      // 1. Headers EXACTLY match the Django database fields / Import Template
       const headers = [
-        "ID Number", "Full Name", "Program", "Year Level", 
-        "Gender", "Age", "Validity Status", "Photo URL", "QR Code URL"
+        "id_number", "full_name", "program", "year_level", 
+        "gender", "age", "validity_status"
       ];
 
       // Helper function to safely handle commas inside names (e.g., "Apus, Jude")
       const escapeCsv = (str) => {
-        if (str === null || str === undefined) return "N/A";
+        // Return an empty string instead of "N/A" so Django doesn't crash on import!
+        if (str === null || str === undefined || str === "N/A") return ""; 
+        
         const cleanStr = String(str);
         if (cleanStr.includes(",") || cleanStr.includes('"') || cleanStr.includes("\n")) {
           return `"${cleanStr.replace(/"/g, '""')}"`;
@@ -170,11 +172,8 @@ export default function ManageStudentRecords() {
         return cleanStr;
       };
 
-      // 2. Loop through ONLY the filtered students to build the rows
+      // 2. Loop through ONLY the filtered students and grab only the 7 allowed columns
       const csvRows = filteredStudents.map((student) => {
-        const photoLink = student.photo ? getFullImageUrl(student.photo, student.full_name) : "No Photo";
-        const qrLink = student.qr_code ? getFullImageUrl(student.qr_code) : "No QR";
-
         return [
           escapeCsv(student.id_number),
           escapeCsv(student.full_name),
@@ -182,9 +181,7 @@ export default function ManageStudentRecords() {
           escapeCsv(student.year_level),
           escapeCsv(student.gender),
           escapeCsv(student.age),
-          escapeCsv(student.validity_status),
-          escapeCsv(photoLink),
-          escapeCsv(qrLink),
+          escapeCsv(student.validity_status)
         ].join(",");
       });
 
@@ -197,9 +194,9 @@ export default function ManageStudentRecords() {
       const link = document.createElement("a");
       link.href = url;
       
-      // Give it a nice dynamic filename based on the date
+      // Dynamic filename
       const dateStr = new Date().toISOString().split('T')[0];
-      link.download = `VerifID_Filtered_Records_${dateStr}.csv`; 
+      link.download = `VerifID_Export_${dateStr}.csv`; 
       
       document.body.appendChild(link);
       link.click();
