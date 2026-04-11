@@ -191,6 +191,9 @@ export default function AccessLogs() {
 
       const timestamp = log.created_at
         ? new Date(log.created_at).toLocaleString("en-PH", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
             hour: "numeric",
             minute: "2-digit",
             second: "2-digit",
