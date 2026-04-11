@@ -314,9 +314,9 @@ class MainWindow(QMainWindow):
             yr_level = "N/A"
         else:
             try:
-                if year_level == 1: ordinal_indicator = "st"
-                elif year_level == 2: ordinal_indicator = "nd"
-                elif year_level == 3: ordinal_indicator = "rd"
+                if year_level == "1": ordinal_indicator = "st"
+                elif year_level == "2": ordinal_indicator = "nd"
+                elif year_level == "3": ordinal_indicator = "rd"
                 else: ordinal_indicator = "th"
                 
                 yr_level = str(year_level) + ordinal_indicator + " Year"
