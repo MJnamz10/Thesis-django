@@ -1,18 +1,27 @@
+.page {
+  /* Use flex to allow children to grow */
+  display: flex; 
+  flex-direction: column;
+  /* Fill the viewport minus the Header height */
+  /* If your Header is roughly 80px, adjust accordingly */
+  height: calc(100vh - 130px); 
+  padding: 0px 140px; /* Horizontal padding for the container */
+  box-sizing: border-box;
+}
+
 .container2MSR {
   display: flex;
   flex-direction: column;
-  padding: 30px;
+  padding: 20px;
   box-sizing: border-box;
   width: 100%;
-  flex: 1;
 
-  /* 👉 THE FIX: Locks the box to the screen height so it cannot push the page down! */
-  max-height: calc(
-    100vh - 120px
-  ); /* 100vh is the full screen, minus your header space */
+  flex: 1;
+  min-height: 0;
   overflow: hidden; /* Stops anything inside from breaking out */
 
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;
@@ -26,7 +35,7 @@
      It forces the table to shrink and trigger the scrollbar 
      instead of stretching its parent container */
   min-height: 0;
-
+  border: 1px solid #e5e7eb;
   overflow-y: auto; /* Enables vertical scrolling */
   overflow-x: auto; /* Enables horizontal scrolling for small screens */
 }
@@ -61,8 +70,8 @@ padding: 12px 10px;
 .student-photo-thumbnail {
   width: 50px;
   height: 50px;
-  min-width: 100px;
-  min-height: 100px;
+  min-width: 50px;
+  min-height: 50px;
   object-fit: cover;
   border-radius: 20%;
   background-color: #f3f4f6;
@@ -153,4 +162,89 @@ padding: 12px 10px;
 
 .close-btn:active {
   transform: scale(0.96);
+}
+
+.kebab-menu {
+  width: 4px;
+  height: 4px;
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  margin: auto; /* Centering for demo */
+}
+
+.kebab-menu::before,
+.kebab-menu::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  background-color: #333;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+}
+
+/* Positioning the top dot */
+.kebab-menu::before {
+  top: -8px;
+}
+
+/* Positioning the bottom dot */
+.kebab-menu::after {
+  bottom: -8px;
+}
+
+/* --- KEBAB MENU DROPDOWN STYLES --- */
+.kebab-dropdown {
+  position: absolute;
+  top: calc(100% + 4px); /* Puts it exactly below the icon */
+  right: 0;
+  background-color: #ffffff; /* Solid white background */
+  border: 1px solid #E4E7EC;
+  border-radius: 8px;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1); /* Beautiful floating shadow */
+  z-index: 9999; /* Forces it over the table */
+  min-width: 250px;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+}
+
+/* Individual buttons inside the menu */
+.kebab-dropdown button {
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%; /* Makes sure the whole row is clickable */
+}
+
+/* Gray background when hovering over an option */
+.kebab-dropdown button:hover {
+  background-color: #dddede; 
+}
+
+/* The line between options */
+.dropdown-divider {
+  height: 1px;
+  background-color: #E4E7EC;
+  margin: 4px 0;
+}
+
+/* Special styling for destructive actions */
+.kebab-dropdown .delete-option {
+  color: #dc2626;
+}
+
+.kebab-dropdown .delete-option:hover {
+  background-color: #FEF2F2; /* Light red background on hover */
 }

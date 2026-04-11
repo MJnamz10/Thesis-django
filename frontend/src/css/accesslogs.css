@@ -1,3 +1,13 @@
+.page {
+  /* Use flex to allow children to grow */
+  display: flex; 
+  flex-direction: column;
+  /* Fill the viewport minus the Header height */
+  /* If your Header is roughly 80px, adjust accordingly */
+  height: calc(100vh - 130px); 
+  padding: 0px 140px; /* Horizontal padding for the container */
+  box-sizing: border-box;
+}
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
@@ -10,19 +20,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* --- MAIN DASHBOARD AREA --- */
 .container2AL {
   display: flex;
-  flex-direction: column; 
-
-  padding: 30px;          
-  box-sizing: border-box; 
-
-  max-height: 80vh;
-  
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
   width: 100%;
-  flex: 1; 
-  
-  overflow: hidden;
-  
-  margin-top: 20px;
+
+  flex: 1;
+  min-height: 0;
+  overflow: hidden; /* Stops anything inside from breaking out */
+
+  margin-top: 10px;
+  margin-bottom: 10px;
   background-color: white;
   border-radius: 14px;
   border: 2px solid #e5e7eb;
@@ -182,7 +190,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .tableAL th, .tableAL td {
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   color: #344054;
 }

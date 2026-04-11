@@ -14,6 +14,14 @@ export default function AdminMenu() {
     );
   });
 
+  const [userName] = useState(() => {
+    return (
+      localStorage.getItem("logged_in_username") ||
+      sessionStorage.getItem("logged_in_username") ||
+      "Admin" // Fallback if no name is found
+    );
+  });
+
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -34,10 +42,12 @@ export default function AdminMenu() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("logged_in_email");
+    localStorage.removeItem("logged_in_username"); 
 
     sessionStorage.removeItem("access_token");
     sessionStorage.removeItem("refresh_token");
     sessionStorage.removeItem("logged_in_email");
+    sessionStorage.removeItem("logged_in_username");
 
     navigate("/");
   };
@@ -48,7 +58,7 @@ export default function AdminMenu() {
         className="admin-avatar-btn"
         onClick={toggleMenu}
         aria-label="Admin Menu"
-        style={{ width: "56px", height: "56px" }}
+        style={{ width: "48px", height: "48px" }}
       >
         <User
           size={32}
@@ -60,14 +70,17 @@ export default function AdminMenu() {
       {isOpen && (
         <div className="admin-dropdown">
           <div className="admin-info">
-            <span className="admin-name">Admin</span>
+            {/* 👉 Use the dynamic state here */}
+            <span className="admin-name" style={{ textTransform: "capitalize" }}>
+              {userName}
+            </span>
             <span className="admin-role">{userEmail}</span>
           </div>
 
           <hr className="dropdown-divider" />
 
           <button className="sign-out-btn" onClick={handleSignOut}>
-            <LogOut size={18} strokeWidth={2} color="white" className="logout-icon" />
+            <LogOut size={18} strokeWidth={2} color="#dc3545" className="logout-icon" />
             Sign Out
           </button>
         </div>

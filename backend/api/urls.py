@@ -13,5 +13,8 @@ urlpatterns = [
     path('verify-admin-password/', views.verify_admin_password, name='verify_admin_password'),
     path('students/bulk-import/', views.bulk_import_students, name='bulk_import_students'),
     path('students/export/csv/', views.export_students_csv, name='export_students_csv'),
-    path('', include(router.urls)),
+    path('students/bulk-reset/', views.bulk_reset_validity, name='bulk-reset-validity'),
+    path('students/bulk-delete/', views.bulk_delete_students, name='bulk-delete-students'),
+    path('students/delete-all/', views.delete_all_students, name='delete-all-students'),
+    path('', include(router.urls))
 ]

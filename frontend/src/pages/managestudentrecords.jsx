@@ -16,7 +16,14 @@ import {
   Hash,
   Trash2,
   Upload,
+  MoreVertical,
+  RefreshCw,     // 👈 Added
+  AlertOctagon,  // 👈 Added
+  Printer,       // 👈 Added
+  FileDown       // 👈 Added
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // 👈 Changed this line
 import AddStudentModal from "./AddStudentModal";
 import Header from "./Header.jsx";
 
@@ -27,12 +34,36 @@ export default function ManageStudentRecords() {
 
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+
+  //Search and Filter states
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterProgram, setFilterProgram] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
   const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
 
   const [scannerOnline, setScannerOnline] = useState(false); // State to track QR scanner status
 
+  const [menuOpen, setMenuOpen] = useState(false); // State for menu icon
+  const menuRef = useRef(null); // Useful for closing when clicking outside
+
+  // Modals for bulk actions
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
+  const [deleteSelectedModalOpen, setDeleteSelectedModalOpen] = useState(false); // 👈 ADD THIS
+  
+  // For the targeted delete (checkboxes)
+  const [selectedIds, setSelectedIds] = useState([]);
+
   const { students, loading, refresh } = useStudents();
+  
+  // Scans your database and grabs all unique program names dynamically
+  const uniquePrograms = Array.from(new Set(students.map(s => s.program)))
+    .filter(Boolean) // Removes any empty/null values
+    .sort(); // Puts them in alphabetical order
+
+
   // Security Modal States
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
@@ -86,56 +117,95 @@ export default function ManageStudentRecords() {
     }
   };
 
-  // Updated helper function to generate initials
+  // Get Image or Generate SVG of Initials
   const getFullImageUrl = (path, fullName) => {
-    // 1. If they uploaded a real photo, always use it!
+    // 1. Handle actual uploaded photos
     if (path) {
       return path.startsWith("http")
         ? path
         : `${import.meta.env.VITE_API_BASE}${path}`;
     }
 
-    // 2. If no photo, generate the initials!
+    // 2. SVG Approach for Initials (Zero Network Latency)
     if (fullName) {
-      // encodeURIComponent safely handles spaces (e.g., "Chris Abella" becomes "Chris%20Abella")
-      // We are using your school's blue theme (#1c398e) for the background!
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1c398e&color=fff&size=128&bold=true`;
+      // Get first letter of first name and last name (e.g., "Jude Apus" -> "JA")
+      const nameParts = fullName.trim().split(" ");
+      const initials = nameParts.length > 1 
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : nameParts[0][0].toUpperCase();
+
+      // Generate a tiny SVG as a Data URI
+      // %23 is the URL-encoded version of # for the background color #1c398e
+      return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'>
+        <rect width='128' height='128' fill='%231c398e'/>
+        <text x='50%' y='50%' font-family='Arial, sans-serif' font-size='50' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>${initials}</text>
+      </svg>`;
     }
 
-    // 3. Absolute fallback just in case a record has no name and no photo
+    // 3. Fallback
     return "/images/default-avatar.png";
   };
 
-  // 👉 NEW: Triggers the download of the CSV file from Django
-  const handleExportClick = async () => {
+  // 👉 UPDATED: Generates an Import-Ready CSV matching the database schema
+  const handleExportClick = () => {
     try {
-      // 1. Fetch the file from our new Django URL
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE}/api/students/export/csv/`,
-        {
-          method: "GET",
-        },
-      );
+      if (filteredStudents.length === 0) {
+        alert("There are no students matching your filters to export.");
+        return;
+      }
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      // 1. Headers EXACTLY match the Django database fields / Import Template
+      const headers = [
+        "id_number", "full_name", "program", "year_level", 
+        "gender", "age", "validity_status"
+      ];
 
-      // 2. Convert the response into a downloadable "Blob" (Binary Large Object)
-      const blob = await response.blob();
+      // Helper function to safely handle commas inside names (e.g., "Apus, Jude")
+      const escapeCsv = (str) => {
+        // Return an empty string instead of "N/A" so Django doesn't crash on import!
+        if (str === null || str === undefined || str === "N/A") return ""; 
+        
+        const cleanStr = String(str);
+        if (cleanStr.includes(",") || cleanStr.includes('"') || cleanStr.includes("\n")) {
+          return `"${cleanStr.replace(/"/g, '""')}"`;
+        }
+        return cleanStr;
+      };
 
-      // 3. Create a temporary, invisible link in the browser to force the download
+      // 2. Loop through ONLY the filtered students and grab only the 7 allowed columns
+      const csvRows = filteredStudents.map((student) => {
+        return [
+          escapeCsv(student.id_number),
+          escapeCsv(student.full_name),
+          escapeCsv(student.program),
+          escapeCsv(student.year_level),
+          escapeCsv(student.gender),
+          escapeCsv(student.age),
+          escapeCsv(student.validity_status)
+        ].join(",");
+      });
+
+      // 3. Combine headers and rows with line breaks
+      const csvContent = [headers.join(","), ...csvRows].join("\n");
+
+      // 4. Turn the string into a downloadable file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "VerifID_Student_Records.csv"; // The name of the file
-
-      // 4. Click the invisible link, then clean it up!
+      
+      // Dynamic filename
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `VerifID_Export_${dateStr}.csv`; 
+      
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export student records. Is the server running?");
+      alert("Failed to export student records.");
     }
   };
 
@@ -151,12 +221,22 @@ export default function ManageStudentRecords() {
 
   const filteredStudents = students
     .filter((student) => {
+      // 1. Search Bar Match
       const query = searchQuery.toLowerCase();
-      return (
+      const matchesSearch = (
         student.full_name.toLowerCase().includes(query) ||
         student.id_number.toLowerCase().includes(query) ||
         student.program.toLowerCase().includes(query)
       );
+
+      // 2. Dropdown Matches (If a dropdown is empty "", it passes automatically)
+      // We wrap year_level in String() just in case it came from Django as an integer
+      const matchesYear = filterYear ? String(student.year_level) === filterYear : true;
+      const matchesProgram = filterProgram ? student.program === filterProgram : true;
+      const matchesStatus = filterStatus ? student.validity_status === filterStatus : true;
+
+      // 3. ONLY return the student if they match ALL active filters
+      return matchesSearch && matchesYear && matchesProgram && matchesStatus;
     })
     .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
@@ -213,6 +293,187 @@ export default function ManageStudentRecords() {
     }
   };
 
+// 1. SECURE: Reset Validity (New Semester)
+  const executeResetValidity = async () => {
+    setDeleteError("");
+    if (!adminPassword) return setDeleteError("Password is required.");
+
+    try {
+      // Verify password first
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/verify-admin-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      if (!verifyRes.ok) return setDeleteError("Incorrect admin password.");
+
+      // If correct, proceed with reset
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/bulk-reset/`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        alert("All student validities have been reset to NOT VERIFIED.");
+        setResetModalOpen(false);
+        setAdminPassword("");
+        refresh();
+      } else {
+        setDeleteError("Failed to reset validities.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setDeleteError("Network error.");
+    }
+  };
+
+  // 2. SECURE: Targeted Delete (Selected Items)
+  const executeDeleteSelected = async () => {
+    setDeleteError("");
+    if (!adminPassword) return setDeleteError("Password is required.");
+
+    try {
+      // Verify password first
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/verify-admin-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      if (!verifyRes.ok) return setDeleteError("Incorrect admin password.");
+
+      // If correct, proceed with bulk delete
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/bulk-delete/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      
+      if (response.ok) {
+        setDeleteSelectedModalOpen(false);
+        setSelectedIds([]); // Clear checkboxes
+        setAdminPassword("");
+        refresh();
+      } else {
+        setDeleteError("Failed to delete selected students.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setDeleteError("Network error.");
+    }
+  };
+
+  // 3. [Danger] Delete All 
+  const executeDeleteAll = async () => {
+    setDeleteError("");
+    if (!adminPassword) return setDeleteError("Password is required.");
+
+    try {
+      // Verify password first
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_BASE}/api/verify-admin-password/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+
+      if (!verifyRes.ok) return setDeleteError("Incorrect admin password.");
+
+      // If correct, wipe the database
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/api/students/delete-all/`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setDeleteAllModalOpen(false);
+        setAdminPassword("");
+        refresh();
+      } else {
+        setDeleteError("Failed to wipe database.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+// 4. Print (PDF) - Formatted Table
+  const handlePrint = () => {
+    try {
+      // 1. Create a new PDF document
+      const doc = new jsPDF();
+
+      // 2. Add a Title to the PDF
+      doc.text("VerifID - Student Records", 14, 15);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
+
+      // 3. Define the exact columns you requested
+      const tableColumns = ["ID Number", "Name", "Program", "Year", "Gender", "Age", "Validity"];
+
+      // 4. Map over the currently filtered students to get their data securely
+      const tableRows = [];
+      filteredStudents.forEach((student) => {
+        const studentData = [
+          student.id_number || "N/A",
+          student.full_name || "N/A",
+          student.program || "N/A",
+          student.year_level || "N/A",
+          student.gender || "N/A",
+          student.age || "N/A",
+          student.validity_status ? student.validity_status.replace("_", " ") : "N/A"
+        ];
+        tableRows.push(studentData);
+      });
+
+      // 5. Generate the table inside the PDF (Using the standalone syntax!)
+      autoTable(doc, {
+        head: [tableColumns],
+        body: tableRows,
+        startY: 28, 
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [28, 57, 142] }, // Your school's blue!
+      });
+
+      // 6. Automatically download the file
+      doc.save("VerifID_Student_Records.pdf");
+
+    } catch (error) {
+      console.error("PDF Generation Error:", error);
+      alert("Failed to generate PDF. Please check the console.");
+    }
+  };
+
+  // 5. Download CSV Template (No backend needed!)
+  const handleDownloadTemplate = () => {
+    // Exact headers your Django import expects
+    const csvContent = "id_number,full_name,program,year_level,gender,age,validity_status\n"; 
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "VerifID_Import_Template.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+// Handle "Select All" checkbox
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      // 👉 Changed to student.id_number
+      const allIds = filteredStudents.map((student) => student.id_number);
+      setSelectedIds(allIds);
+    } else {
+      setSelectedIds([]); // Deselect all
+    }
+  };
+
+  // Handle individual row checkbox
+  const handleSelectOne = (e, studentIdNumber) => {
+    if (e.target.checked) {
+      setSelectedIds((prev) => [...prev, studentIdNumber]);
+    } else {
+      setSelectedIds((prev) => prev.filter((id) => id !== studentIdNumber));
+    }
+  };
+  
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -231,6 +492,17 @@ export default function ManageStudentRecords() {
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <>
       <Header scannerOnline={scannerOnline} />
@@ -241,7 +513,7 @@ export default function ManageStudentRecords() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              marginBottom: "24px",
+              marginBottom: "10px",
               flexWrap: "wrap",
               gap: "16px",
             }}
@@ -276,43 +548,176 @@ export default function ManageStudentRecords() {
               >
                 <Plus size={16} /> Add Student Record
               </button>
+              <div style={{ position: "relative" }} ref={menuRef}>
+                {/* 1. The Icon Button (won't move when clicked) */}
+                <button 
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "8px",
+                  }}
+                  title="More options"
+                >
+                  <MoreVertical size={20} color="#030f28" />
+                </button>
+
+                {/* 2. The Dropdown Content */}
+                {menuOpen && (
+                  <div className="kebab-dropdown">
+                    <button onClick={() => { 
+                      setAdminPassword(""); 
+                      setDeleteError(""); 
+                      setResetModalOpen(true); 
+                      setMenuOpen(false); 
+                    }}>
+                      <RefreshCw size={16} /> Reset Validity (New Semester)
+                    </button>
+
+                    <div className="dropdown-divider"></div>
+
+                    <button 
+                      onClick={() => { 
+                        if (selectedIds.length === 0) return alert("No students selected!");
+                        setAdminPassword(""); 
+                        setDeleteError(""); 
+                        setDeleteSelectedModalOpen(true); 
+                        setMenuOpen(false); 
+                      }}
+                      style={{ opacity: selectedIds.length === 0 ? 0.5 : 1, cursor: selectedIds.length === 0 ? 'not-allowed' : 'pointer' }}
+                      disabled={selectedIds.length === 0}
+                    >
+                      <Trash2 size={16} /> Delete Selected ({selectedIds.length})
+                    </button>
+
+                    <button className="delete-option" onClick={() => { setDeleteAllModalOpen(true); setMenuOpen(false); }}>
+                      <AlertOctagon size={16} /> [ Danger ] Delete All
+                    </button>
+
+                    <div className="dropdown-divider"></div>
+
+                    <button onClick={() => { handlePrint(); setMenuOpen(false); }}>
+                      <Printer size={16} /> Print (PDF)
+                    </button>
+
+                    <button onClick={() => { handleDownloadTemplate(); setMenuOpen(false); }}>
+                      <FileDown size={16} /> Download CSV Template
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", marginBottom: "24px" }}>
-            <div style={{ position: "relative", flex: 1, maxWidth: "100%" }}>
-              <Search
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "gray",
-                }}
-              />
+          {/* --- SEARCH & FILTER ROW --- */}
+          <div style={{ display: "flex", gap: "16px", marginBottom: "10px", flexWrap: "wrap" }}>
+            
+            {/* 1. Search Bar */}
+            <div style={{ position: "relative", flex: 1, minWidth: "250px" }}>
+              <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "gray" }} />
               <input
                 type="text"
                 placeholder="Search by name or student ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px 10px 10px 36px",
-                  borderRadius: "8px",
-                  border: "1px solid #E4E7EC",
-                  backgroundColor: "#F9FAFB",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                style={{ width: "100%", padding: "10px 10px 10px 36px", borderRadius: "8px", border: "1px solid #E4E7EC", backgroundColor: "#F9FAFB", outline: "none", boxSizing: "border-box" }}
               />
             </div>
+
+            {/* 2. Program Filter (Dynamic) */}
+            <select
+              value={filterProgram}
+              onChange={(e) => setFilterProgram(e.target.value)}
+              style={{ 
+                padding: "10px", 
+                borderRadius: "8px", 
+                // 👇 Dynamic Styling starts here!
+                backgroundColor: filterProgram ? "#eff6ff" : "white", 
+                border: filterProgram ? "1px solid #bfdbfe" : "1px solid #E4E7EC",
+                color: filterProgram ? "#1e3a8a" : "#374151",
+                outline: "none", 
+                cursor: "pointer", 
+                minWidth: "140px",
+                fontWeight: filterProgram ? "500" : "normal"
+              }}
+            >
+              <option value="">All Programs</option>
+              {uniquePrograms.map((prog) => (
+                <option key={prog} value={prog}>{prog}</option>
+              ))}
+            </select>
+
+            {/* 3. Year Level Filter */}
+            <select
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              style={{ 
+                padding: "10px", 
+                borderRadius: "8px", 
+                // 👇 Dynamic Styling starts here!
+                backgroundColor: filterYear ? "#eff6ff" : "white", 
+                border: filterYear ? "1px solid #bfdbfe" : "1px solid #E4E7EC",
+                color: filterYear ? "#1e3a8a" : "#374151",
+                outline: "none", 
+                cursor: "pointer", 
+                minWidth: "120px",
+                fontWeight: filterYear ? "500" : "normal"
+              }}
+            >
+              <option value="">All Years</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+            </select>
+
+            {/* 4. Validity Status Filter */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ 
+                padding: "10px", 
+                borderRadius: "8px", 
+                // 👇 Dynamic Styling starts here!
+                backgroundColor: filterStatus ? "#eff6ff" : "white", 
+                border: filterStatus ? "1px solid #bfdbfe" : "1px solid #E4E7EC",
+                color: filterStatus ? "#1e3a8a" : "#374151",
+                outline: "none", 
+                cursor: "pointer", 
+                minWidth: "140px",
+                fontWeight: filterStatus ? "500" : "normal"
+              }}
+            >
+              <option value="">All Statuses</option>
+              <option value="VERIFIED">Verified</option>
+              <option value="NOT_VERIFIED">Not Verified</option>
+              <option value="INVALID">Invalid</option>
+            </select>
+
           </div>
 
           <div className="table-containerMSR">
             <table className="tableMSR">
               <thead>
                 <tr>
+                  {/* 👉 NEW: Master Checkbox */}
+                  <th style={{ width: "40px", textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      style={{ cursor: "pointer" }}
+                      onChange={handleSelectAll}
+                      checked={
+                        filteredStudents.length > 0 &&
+                        selectedIds.length === filteredStudents.length
+                      }
+                    />
+                  </th>
                   <th>Photo</th>
                   <th>ID Number</th>
                   <th>Name</th>
@@ -328,13 +733,28 @@ export default function ManageStudentRecords() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: "center" }}>
+                    <td colSpan="11" style={{ textAlign: "center" }}>
                       Loading...
                     </td>
                   </tr>
                 ) : filteredStudents.length > 0 ? (
                   filteredStudents.map((student) => (
-                    <tr key={student.id_number}>
+                    // 👉 Added a background color change if the row is selected!
+                    <tr 
+                      key={student.id_number}
+                      style={{ backgroundColor: selectedIds.includes(student.id_number) ? "#dededf" : "transparent" }}
+                    >
+                      {/* 👉 NEW: Individual Checkbox */}
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          style={{ cursor: "pointer" }}
+                          checked={selectedIds.includes(student.id_number)}
+                          onChange={(e) => handleSelectOne(e, student.id_number)}
+                        />
+                      </td>
+
+                      {/* Photo column stays exactly the same */}
                       <td>
                         <img
                           src={getFullImageUrl(
@@ -412,8 +832,8 @@ export default function ManageStudentRecords() {
                 ) : (
                   <tr>
                     <td
-                      colSpan="8"
-                      style={{ textAlign: "center", padding: "20px" }}
+                      colSpan="11"
+                      style={{ textAlign: "center", padding: "10px", height: "15vh", color: "gray", fontSize: "16px"  }}
                     >
                       {searchQuery
                         ? `No results found for "${searchQuery}"`
@@ -463,250 +883,100 @@ export default function ManageStudentRecords() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "20px",
-                }}
-              >
+              {/* --- HEADER --- */}
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
                 <div>
-                  <h2
-                    style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}
-                  >
-                    Student Details
-                  </h2>
-                  <p
+                  <h2 style={{ fontSize: "22px", fontWeight: "bold", margin: 0 }}>Student Details</h2>
+                  <p style={{ fontSize: "13px", color: "gray", margin: "2px 0 0 0" }}>Complete student information</p>
+                </div>
+                <button style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "gray" }} onClick={() => setSelectedDetailStudent(null)}>✕</button>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              {/* --- TOP SECTION: PHOTO + NAME/ID/STATUS --- */}
+              <div style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "20px" }}>
+                <img
+                  src={getFullImageUrl(selectedDetailStudent.photo, selectedDetailStudent.full_name)}
+                  alt={selectedDetailStudent.full_name}
+                  style={{ width: "110px", height: "110px", borderRadius: "12px", objectFit: "cover", border: "1px solid #E4E7EC" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <h3 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#101828", textTransform: "uppercase" }}>
+                    {selectedDetailStudent.full_name}
+                  </h3>
+                  <p style={{ fontSize: "14px", color: "#667085", margin: 0 }}>{selectedDetailStudent.id_number}</p>
+                  <div
                     style={{
-                      fontSize: "14px",
-                      color: "gray",
-                      margin: "4px 0 0 0",
+                      marginTop: "8px",
+                      backgroundColor: selectedDetailStudent.validity_status === "VERIFIED" ? "#EBF8F2" : selectedDetailStudent.validity_status === "INVALID" ? "#FEEDEA" : "#F2F4F7",
+                      color: selectedDetailStudent.validity_status === "VERIFIED" ? "#1B9B62" : selectedDetailStudent.validity_status === "INVALID" ? "#CB2B21" : "#616161",
+                      padding: "4px 12px",
+                      borderRadius: "6px",
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      width: "fit-content",
+                      textAlign: "center"
                     }}
                   >
-                    Complete student information
-                  </p>
-                </div>
-                <button
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    cursor: "pointer",
-                    color: "gray",
-                  }}
-                  onClick={() => setSelectedDetailStudent(null)}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  color: "#101828",
-                }}
-              >
-                <img
-                  src={getFullImageUrl(
-                    selectedDetailStudent.photo,
-                    selectedDetailStudent.full_name,
-                  )}
-                  alt={selectedDetailStudent.full_name}
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    marginBottom: "16px",
-                  }}
-                  onError={(e) => {
-                    e.target.src = "/images/default-avatar.png";
-                  }}
-                />
-                <h3
-                  style={{ fontSize: "20px", fontWeight: "bold", margin: "0" }}
-                >
-                  {selectedDetailStudent.full_name}
-                </h3>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "gray",
-                    margin: "8px 0 16px 0",
-                  }}
-                >
-                  {selectedDetailStudent.id_number}
-                </p>
-
-                <div
-                  style={{
-                    backgroundColor:
-                      selectedDetailStudent.validity_status === "VERIFIED"
-                        ? "#EBF8F2"
-                        : selectedDetailStudent.validity_status === "INVALID"
-                          ? "#FEEDEA"
-                          : "#F2F4F7",
-                    color:
-                      selectedDetailStudent.validity_status === "VERIFIED"
-                        ? "#1B9B62"
-                        : selectedDetailStudent.validity_status === "INVALID"
-                          ? "#CB2B21"
-                          : "#616161",
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                    marginBottom: "20px",
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {selectedDetailStudent.validity_status.replace("_", " ")}
-                </div>
-              </div>
-
-              <div
-                style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-              />
-
-              {/* --- UPDATED: Perfect 2x2 Grid for Student Info --- */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "1fr 1fr" /* This creates two equal-width columns */,
-                  gap: "24px 16px" /* 24px vertical gap, 16px horizontal gap */,
-                  marginBottom: "20px",
-                  width: "100%",
-                  padding: "0 16px",
-                  boxSizing: "border-box",
-                }}
-              >
-                {/* 1. Program (Top Left) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <GraduationCap size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Program
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.program}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2. Year Level (Top Right) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <CalendarDays size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Year Level
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {{
-                        1: "1st Year",
-                        2: "2nd Year",
-                        3: "3rd Year",
-                        4: "4th Year",
-                        5: "5th Year",
-                      }[selectedDetailStudent.year_level] ||
-                        selectedDetailStudent.year_level}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Gender (Bottom Left) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <Users size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>
-                      Gender
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.gender || "N/A"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4. Age (Bottom Right) */}
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div style={{ color: "#155DFC" }}>
-                    <Hash size={20} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontSize: "12px", color: "gray" }}>Age</span>
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        color: "#101828",
-                      }}
-                    >
-                      {selectedDetailStudent.age || "N/A"}
-                    </span>
+                    {selectedDetailStudent.validity_status.replace("_", " ")}
                   </div>
                 </div>
               </div>
 
-              <div
-                style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }}
-              />
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
 
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
+              {/* --- GRID SECTION: PROGRAM, YEAR, GENDER, AGE --- */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                {/* Program */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <GraduationCap size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Program</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.program}</span>
+                  </div>
+                </div>
+                {/* Year Level */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <CalendarDays size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Year Level</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.year_level}</span>
+                  </div>
+                </div>
+                {/* Gender */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Users size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Gender</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.gender || "N/A"}</span>
+                  </div>
+                </div>
+                {/* Age */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Hash size={18} color="#155DFC" />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: "11px", color: "gray" }}>Age</span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{selectedDetailStudent.age || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid #E4E7EC", marginBottom: "20px" }} />
+
+              {/* --- QR CODE --- */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
                 <img
                   src={getFullImageUrl(selectedDetailStudent.qr_code)}
-                  alt="Zoomed Student QR"
-                  style={{
-                    width: "200px",
-                    height: "200px",
-                    marginBottom: "20px",
-                    objectFit: "contain",
-                  }}
+                  alt="QR Code"
+                  style={{ width: "150px", height: "150px", objectFit: "contain" }}
                 />
               </div>
 
+              {/* --- CLOSE BUTTON --- */}
               <button
                 className="close-btn"
+                style={{ width: "100%", padding: "12px", borderRadius: "8px", fontWeight: "bold" }}
                 onClick={() => setSelectedDetailStudent(null)}
               >
                 Close
@@ -864,6 +1134,119 @@ export default function ManageStudentRecords() {
                 >
                   Delete Record
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* --- SECURE RESET VALIDITY MODAL --- */}
+        {resetModalOpen && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999 }}>
+            <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "400px", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div style={{ backgroundColor: "#EBF8F2", padding: "10px", borderRadius: "50%", color: "#1B9B62" }}><RefreshCw size={24} /></div>
+                <h2 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#111827" }}>Reset Semester Validity</h2>
+              </div>
+              
+              <p style={{ fontSize: "14px", color: "#4b5563", marginBottom: "20px", lineHeight: "1.5" }}>
+                Are you sure you want to reset all student records to <strong>NOT VERIFIED</strong>? Enter your Admin Password to confirm.
+              </p>
+
+              {deleteError && (
+                <div style={{ color: "#dc2626", backgroundColor: "#fef2f2", padding: "10px", borderRadius: "8px", fontSize: "13px", marginBottom: "16px", border: "1px solid #fecaca" }}>
+                  {deleteError}
+                </div>
+              )}
+
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>Admin Password</label>
+                <input 
+                  type="password" 
+                  value={adminPassword} 
+                  onChange={(e) => setAdminPassword(e.target.value)} 
+                  placeholder="Enter password" 
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button onClick={() => setResetModalOpen(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "1px solid #d1d5db", backgroundColor: "white", cursor: "pointer" }}>Cancel</button>
+                <button onClick={executeResetValidity} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#1B9B62", color: "white", fontWeight: "bold", cursor: "pointer" }}>Reset All</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- SECURE DELETE SELECTED MODAL --- */}
+        {deleteSelectedModalOpen && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999 }}>
+            <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "400px", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div style={{ backgroundColor: "#fef2f2", padding: "10px", borderRadius: "50%", color: "#dc2626" }}><Trash2 size={24} /></div>
+                <h2 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#111827" }}>Delete Selected</h2>
+              </div>
+              
+              <p style={{ fontSize: "14px", color: "#4b5563", marginBottom: "20px", lineHeight: "1.5" }}>
+                Are you sure you want to permanently delete the <strong>{selectedIds.length}</strong> selected students? Enter your Admin Password to confirm.
+              </p>
+
+              {deleteError && (
+                <div style={{ color: "#dc2626", backgroundColor: "#fef2f2", padding: "10px", borderRadius: "8px", fontSize: "13px", marginBottom: "16px", border: "1px solid #fecaca" }}>
+                  {deleteError}
+                </div>
+              )}
+
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>Admin Password</label>
+                <input 
+                  type="password" 
+                  value={adminPassword} 
+                  onChange={(e) => setAdminPassword(e.target.value)} 
+                  placeholder="Enter password" 
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button onClick={() => setDeleteSelectedModalOpen(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "1px solid #d1d5db", backgroundColor: "white", cursor: "pointer" }}>Cancel</button>
+                <button onClick={executeDeleteSelected} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#dc2626", color: "white", fontWeight: "bold", cursor: "pointer" }}>Delete Students</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- DANGER: DELETE ALL MODAL --- */}
+        {deleteAllModalOpen && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999 }}>
+            <div style={{ background: "white", padding: "24px", borderRadius: "16px", width: "400px", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div style={{ backgroundColor: "#fef2f2", padding: "10px", borderRadius: "50%", color: "#dc2626" }}><AlertOctagon size={24} /></div>
+                <h2 style={{ fontSize: "20px", fontWeight: "bold", margin: 0, color: "#111827" }}>WIPE DATABASE</h2>
+              </div>
+              
+              <p style={{ fontSize: "14px", color: "#4b5563", marginBottom: "20px", lineHeight: "1.5" }}>
+                <strong>WARNING:</strong> This action will permanently delete every student record in the system. This cannot be undone. Enter your Admin Password to confirm.
+              </p>
+
+              {deleteError && (
+                <div style={{ color: "#dc2626", backgroundColor: "#fef2f2", padding: "10px", borderRadius: "8px", fontSize: "13px", marginBottom: "16px", border: "1px solid #fecaca" }}>
+                  {deleteError}
+                </div>
+              )}
+
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>Admin Password</label>
+                <input 
+                  type="password" 
+                  value={adminPassword} 
+                  onChange={(e) => setAdminPassword(e.target.value)} 
+                  placeholder="Enter password" 
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #d1d5db", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button onClick={() => setDeleteAllModalOpen(false)} style={{ padding: "10px 16px", borderRadius: "8px", border: "1px solid #d1d5db", backgroundColor: "white", cursor: "pointer" }}>Cancel</button>
+                <button onClick={executeDeleteAll} style={{ padding: "10px 16px", borderRadius: "8px", border: "none", backgroundColor: "#dc2626", color: "white", fontWeight: "bold", cursor: "pointer" }}>Wipe Database</button>
               </div>
             </div>
           </div>
